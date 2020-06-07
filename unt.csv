@@ -1,0 +1,126 @@
+0, 0, Header, 1, 4, 384
+1, 0, Start_track
+1, 0, Time_signature, 4, 2, 24, 8
+1, 0, Tempo, 545454
+1, 0, End_track
+2, 0, Start_track
+2, 0, Title_t, "Electric Guitar"
+2, 0, Program_c, 0, 29
+2, 0, Note_on_c, 0, 71, 50
+2, 96, Note_off_c, 0, 71, 0
+2, 96, Note_on_c, 0, 70, 50
+2, 192, Note_off_c, 0, 70, 0
+2, 192, Note_on_c, 0, 69, 50
+2, 288, Note_off_c, 0, 69, 0
+2, 288, Note_on_c, 0, 68, 50
+2, 384, Note_off_c, 0, 68, 0
+2, 384, Note_on_c, 0, 67, 50
+2, 480, Note_off_c, 0, 67, 0
+2, 480, Note_on_c, 0, 66, 50
+2, 576, Note_off_c, 0, 66, 0
+2, 576, Note_on_c, 0, 65, 50
+2, 672, Note_off_c, 0, 65, 0
+2, 672, Note_on_c, 0, 64, 50
+2, 768, Note_off_c, 0, 64, 0
+2, 768, Note_on_c, 0, 63, 50
+2, 864, Note_off_c, 0, 63, 0
+2, 864, Note_on_c, 0, 62, 50
+2, 960, Note_off_c, 0, 62, 0
+2, 960, Note_on_c, 0, 61, 50
+2, 1056, Note_off_c, 0, 61, 0
+2, 1056, Note_on_c, 0, 60, 50
+2, 1152, Note_off_c, 0, 60, 0
+2, 1152, Note_on_c, 0, 59, 50
+2, 1248, Note_off_c, 0, 59, 0
+2, 1248, Note_on_c, 0, 58, 50
+2, 1344, Note_off_c, 0, 58, 0
+2, 1344, Note_on_c, 0, 57, 50
+2, 1440, Note_off_c, 0, 57, 0
+2, 1440, Note_on_c, 0, 56, 50
+2, 1536, Note_off_c, 0, 56, 0
+2, 1536, Note_on_c, 0, 55, 50
+2, 1632, Note_off_c, 0, 55, 0
+2, 1632, Note_on_c, 0, 54, 50
+2, 1728, Note_off_c, 0, 54, 0
+2, 1728, Note_on_c, 0, 53, 50
+2, 1824, Note_off_c, 0, 53, 0
+2, 1824, Note_on_c, 0, 52, 50
+2, 1920, Note_off_c, 0, 52, 0
+2, 1920, Note_on_c, 0, 51, 50
+2, 2016, Note_off_c, 0, 51, 0
+2, 2016, Note_on_c, 0, 50, 50
+2, 2112, Note_off_c, 0, 50, 0
+2, 2112, Note_on_c, 0, 49, 50
+2, 2208, Note_off_c, 0, 49, 0
+2, 2208, Note_on_c, 0, 48, 50
+2, 2304, Note_off_c, 0, 48, 0
+2, 2304, Note_on_c, 0, 47, 50
+2, 2400, Note_off_c, 0, 47, 0
+2, 2400, Note_on_c, 0, 46, 50
+2, 2496, Note_off_c, 0, 46, 0
+2, 2496, End_track
+3, 0, Start_track
+3, 0, Title_t, "Grand Piano"
+3, 0, Program_c, 1, 0
+3, 2496, Note_on_c, 1, 47, 50
+3, 2592, Note_off_c, 1, 47, 0
+3, 2592, Note_on_c, 1, 48, 50
+3, 2688, Note_off_c, 1, 48, 0
+3, 2688, Note_on_c, 1, 49, 50
+3, 2784, Note_off_c, 1, 49, 0
+3, 2784, Note_on_c, 1, 50, 50
+3, 2880, Note_off_c, 1, 50, 0
+3, 2880, Note_on_c, 1, 51, 50
+3, 2976, Note_off_c, 1, 51, 0
+3, 2976, Note_on_c, 1, 52, 50
+3, 3072, Note_off_c, 1, 52, 0
+3, 3072, Note_on_c, 1, 53, 50
+3, 3168, Note_off_c, 1, 53, 0
+3, 3168, Note_on_c, 1, 54, 50
+3, 3264, Note_off_c, 1, 54, 0
+3, 3264, Note_on_c, 1, 55, 50
+3, 3360, Note_off_c, 1, 55, 0
+3, 3360, Note_on_c, 1, 56, 50
+3, 3456, Note_off_c, 1, 56, 0
+3, 3456, Note_on_c, 1, 57, 50
+3, 3552, Note_off_c, 1, 57, 0
+3, 3552, Note_on_c, 1, 58, 50
+3, 3648, Note_off_c, 1, 58, 0
+3, 3648, Note_on_c, 1, 59, 50
+3, 3744, Note_off_c, 1, 59, 0
+3, 3744, Note_on_c, 1, 60, 50
+3, 3840, Note_off_c, 1, 60, 0
+3, 3840, Note_on_c, 1, 61, 50
+3, 3936, Note_off_c, 1, 61, 0
+3, 3936, Note_on_c, 1, 62, 50
+3, 4032, Note_off_c, 1, 62, 0
+3, 4032, Note_on_c, 1, 63, 50
+3, 4128, Note_off_c, 1, 63, 0
+3, 4128, Note_on_c, 1, 64, 50
+3, 4224, Note_off_c, 1, 64, 0
+3, 4224, Note_on_c, 1, 65, 50
+3, 4320, Note_off_c, 1, 65, 0
+3, 4320, Note_on_c, 1, 66, 50
+3, 4416, Note_off_c, 1, 66, 0
+3, 4416, Note_on_c, 1, 67, 50
+3, 4512, Note_off_c, 1, 67, 0
+3, 4512, Note_on_c, 1, 68, 50
+3, 4608, Note_off_c, 1, 68, 0
+3, 4608, Note_on_c, 1, 69, 50
+3, 4704, Note_off_c, 1, 69, 0
+3, 4704, Note_on_c, 1, 70, 50
+3, 4800, Note_off_c, 1, 70, 0
+3, 4800, Note_on_c, 1, 71, 50
+3, 4896, Note_off_c, 1, 71, 0
+3, 4896, End_track
+4, 0, Start_track
+4, 0, Title_t, "Trombone"
+4, 0, Program_c, 2, 57
+4, 24288, Note_on_c, 2, 73, 50
+4, 24384, Note_off_c, 2, 73, 0
+4, 24384, Note_on_c, 2, 74, 50
+4, 24480, Note_off_c, 2, 74, 0
+4, 24480, Note_on_c, 2, 75, 50
+4, 24576, Note_off_c, 2, 75, 0
+4, 24576, End_track
+0, 0, End_of_file
