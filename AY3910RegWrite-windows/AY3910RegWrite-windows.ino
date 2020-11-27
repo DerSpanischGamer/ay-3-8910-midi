@@ -243,7 +243,6 @@ void setup()
   write_2149_reg(SEGUNDO, REG_LVL_A, 0);
   write_2149_reg(SEGUNDO, REG_LVL_B, 0);
   write_2149_reg(SEGUNDO, REG_LVL_C, 0);
-  
 }
 
 char regs[3];
