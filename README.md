@@ -22,16 +22,16 @@ Es la librería para hacer más fácil y limpio el código.
 Las únicas funciones que hay que saberse son:
 
 Importar la librería
-'#include "Amadeus.h"
+`#include "Amadeus.h"`
 
 Iniciar una instancia de la libería
-'Amadeus amadeus = Amadeus(); // Iniciar la clase Amadeus'
+`Amadeus amadeus = Amadeus(); // Iniciar la clase Amadeus`
 
 Iniciar todo el reloj y configurar los pines
-'amadeus.begin()'
+`amadeus.begin();`
 
 Poner un valor VAL en el registro REG del chip C
-'amadeus.out(C, REG, VAL);'
+`amadeus.out(C, REG, VAL);`
 
 El resto de funciones son privadas ya que solo sirven para llevar a cabo las funciones que están aquí arriba. Si eres curioso echa un vistazo al código, aunque es literalmente lo mismo que el código de la primera carpeta.
 
@@ -55,7 +55,7 @@ Ok, llegamos a los archivos .py que son los interesantes:
 
 - **amadeussender.py** : sirve para poder utilizar los dos chips de una [placa Amadeus](https://www.youtube.com/watch?v=V24AyQ2n8vY) o un Arduino que esté conectado de la misma manera. La diferencia entre este archivo y **midisender.py** es que este puede manejar **6** canales simultáneos, en vez de 3 tristes y solitarios canales.
 
-Para usarlo: 'python amadeussender.py "ARCHIVO.csv" "PUERTO"'
+Para usarlo: `python amadeussender.py "ARCHIVO.csv" "PUERTO"`
 
 IMPORTANTE: los datos que envia este archivo son (en este orden):
 
@@ -65,25 +65,27 @@ IMPORTANTE: los datos que envia este archivo son (en este orden):
 
 * VALOR : el valor que queremos escribir en el registro ( 0 -> 256).
 
+Por lo que, si enviamos los bytes [0,1,2], tendremos el valor 2 en el registro 1 del chip (PRIMERO).
+
 Para que funcione lo que envía, hay que instalar en el Arduino el código adecuado (el que no pone para 1 placa vamos).
 
 - **csv-midi.py** : EN DESARROLLO. Cuando esté acabado guardará los contenidos de un archivo .mid en 768 bytes para que lo lea un microprocesador como el 6502 o Z80 :)
 
 - **midisender.py** : hace lo mismo que amadeussender.py, salvo que solo disponemos de 3 canales ya que es el número de canales de un chip YM2149 / AY-3-8910, y los datos no se envían de la misma manera. Ejercicio para el lector ver cómo se envían porque me da pereza mirarlo de nuevo, pero la diferencia es que con amadeussender, el que hace el trabajo es el ordenador, ya que descompone la nota en los valores para cada registro, mientras que en este, el Arduino tiene que "decodificar" un poco el mensaje que le llega para tocar la nota.
 
-Uso: 'python midisender.py "ARCHIVO.csv" "PUERTO"'
+Uso: `python midisender.py "ARCHIVO.csv" "PUERTO"`
 
 - **frequency_calculator.py** :  Calcula el valor que hay que poner en los registros del YM2149/AY-3-8910 para obtener todas las frecuencias posibles. Esto es necesario porque luego el programa csv-midi.py lee la frecuencia del archivo csv (que antes era midi) y necesita saber el equivalente para el AY-3-8910
 
 frequency_calculator.py devuelve un string con forma de array de python para pegarlo directamente en la variable combis de csv-midi.py o midisender.py.
 
-Para usarlo: 'python thing_calculator.py [FRECUENCIA EN Hz (opcional)]'
+Para usarlo: `python thing_calculator.py [FRECUENCIA EN Hz (opcional)]`
 
-Ex.: 'python thing_calculator.py'
+Ex.: `python thing_calculator.py`
 o
-'python thing_calculator.py 1000000'
+`python thing_calculator.py 1000000`
 
 => El primero ejecuta el programa con la frecuencia predeterminada de 2MHz, mientras que el segundo lo hace con una de 1Mhz.
 
-CRÃ‰DITOS:
+CRÉDITOS:
   -https://github.com/986-Studio/AY-3-3910-Player/blob/master/AY3910RegWrite/AY3910RegWrite.ino PARTE DE ARDUINO
