@@ -63,7 +63,7 @@ def anadirNote(tiempo, nota):
 	ultimaVez = tiempo
 	
 def quitarNote(tiempo, nota):
-	global line_count, ultimaVez
+	global line_count, ultimaVez, canales
 	line_count += 1
 	
 	dif_tiempo = int(tiempo - ultimaVez)
@@ -109,7 +109,7 @@ for i in range(len(canales)):
 for i in range(len(bin)):
 	while (len(bin[i]) < 256): bin[i].append(64)
 
-rom = bytearray([0] * 8191)
+rom = bytearray([0] * 8191) #  Se escriben los datos de bin en el mismo orden que estan arriba
 for i in range(len(bin)):
 	for j in range(len(bin[i])):
 		rom[(i*len(bin[i])) + j] = bin[i][j]
