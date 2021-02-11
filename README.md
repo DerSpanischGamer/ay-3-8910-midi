@@ -45,7 +45,7 @@ Boy oh boy, es aquí que empieza la diversión. Primero, los archivos .exe son med
 
 - **Controlador Registros Dual YM2149.exe** : es un programa que estoy haciendo para controlar todos los registros de una manera visual. NO ESTÁ ACABADO Y TIENE ERRORES SEGURAMENTE.
 
-- **Midicsv.exe** : Transforma un archivo .mid en .csv. Para usarlo se necesita la consola de comandos y el comando es 'Midicsv.exe "ARCHIVO.mid" "OUTPUT.csv"'. Obviamente ARCHIVO es el nombre del archivo .mid que queremos transformar y OUTPUT es el nombre que queremos que tenga el archivo de salida.
+- **Midicsv.exe** : Transforma un archivo .mid en .csv. Para usarlo se necesita la consola de comandos y el comando es `Midicsv.exe "ARCHIVO.mid" "OUTPUT.csv"`. Obviamente ARCHIVO es el nombre del archivo .mid que queremos transformar y OUTPUT es el nombre que queremos que tenga el archivo de salida.
 
 - **bin2hex.exe** : A ignorar, no se ni lo que hace...
 
@@ -53,9 +53,9 @@ Boy oh boy, es aquí que empieza la diversión. Primero, los archivos .exe son med
 
 Ok, llegamos a los archivos .py que son los interesantes:
 
-- **amadeussender.py** : sirve para poder utilizar los dos chips de una [placa Amadeus](https://www.youtube.com/watch?v=V24AyQ2n8vY) o un Arduino que esté conectado de la misma manera. La diferencia entre este archivo y **midisender.py** es que este puede manejar **6** canales simultáneos, en vez de 3 tristes y solitarios canales.
+- **amadeussender_legacy.py** : sirve para poder utilizar los dos chips de una [placa Amadeus](https://www.youtube.com/watch?v=V24AyQ2n8vY) o un Arduino que esté conectado de la misma manera. La diferencia entre este archivo y **midisender.py** es que este puede manejar **6** canales simultáneos, en vez de 3 tristes y solitarios canales.
 
-Para usarlo: `python amadeussender.py "ARCHIVO.csv" "PUERTO"`
+Para usarlo: `python amadeussender_legacy.py "ARCHIVO.csv" "PUERTO"`
 
 IMPORTANTE: los datos que envia este archivo son (en este orden):
 
@@ -68,6 +68,10 @@ IMPORTANTE: los datos que envia este archivo son (en este orden):
 Por lo que, si enviamos los bytes [0,1,2], tendremos el valor 2 en el registro 1 del chip (PRIMERO).
 
 Para que funcione lo que envía, hay que instalar en el Arduino el código adecuado (el que no pone para 1 placa vamos).
+
+- **amadeussender.py** : una versión mejorada de amadeussender_legacy.py que permite detectar diferentes pistas que tocarían simultaneamente. Se obtiene pasando por todo el archivo .csv y una vez que se tienen todas las notas, se ordenan por tiempo, y después es todo igual a amadeussender.py
+
+Para usarlo: `python amadeussender.py "ARCHIVO.csv" "PUERTO"`
 
 - **csv-midi.py** : EN DESARROLLO. Cuando esté acabado guardará los contenidos de un archivo .mid en 768 bytes para que lo lea un microprocesador como el 6502 o Z80 :)
 
