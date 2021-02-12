@@ -46,6 +46,8 @@ preNotas = [] # Guarda un array con todas las notas que hay, aunque sean de pist
 notas = [] 				# Array de arrays de 3 bytes que guardan: [chip, registro, valor]
 tiemposEntreNotas = [] 	# Delay que hay entre cambios de notas
 
+canalesUtilizados = 0	# Utilizado para ver cuantos canales estan abiertos en un momento dado
+
 ultimavez = 0 # Ultimo cambio entre activar / desactivar una nota
 
 tempo = 0 # Guarda los milisegundos / midi clock pulses, para obtener los milisegundos solo hay que multiplicar por los clk pulses
@@ -57,24 +59,6 @@ pulsos = 24 # Pulsos cada cuarto de nota
 preguntar  = False # Preguntar si desea continuar en caso de que la cancion pueda no sonar bien
 
 # ------------ FUNCIONES ---------------
-
-# Mirar si hay más de seis lineas abiertas al msismo tiempo
-with open(archivo) as csv_file:
-	canalesUtilizados = 0
-	
-	csv_reader = csv.reader(csv_file, delimiter=',')
-	for row in csv_reader:
-		
-		if (row[2] == " Note_on_c"): canalesUtilizados += 1
-		elif (row[2] == " Note_off_c"): canalesUtilizados -= 1
-		else: continue
-		
-		if (canalesUtilizados > 6):
-			preguntar = True # El midi podría sonar mal, hay que preguntar si quiere jugarsela :S
-			print("En", row[1], " se están utilizando más de 6 canales al mismo tiempo. Una vez que los 6 canales están siendo utilizados, el resto se ignoran.")	
-
-if (preguntar): # Preguntar si quiere continuar
-	if (input("\n \nEl archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
 
 # Devuelve la posicion del primer canal que esté disponible
 def getCanalDisponible():
@@ -160,8 +144,6 @@ with open(archivo) as csv_file:
 			preNotas.append([int(row[1]) * tempo, 0, int(row[4])])
 		else: continue
 
-if (input("\n \n Cancion lista, pulsa cualquier tecla para continuar \n")): print()
-
 preNotasNP = np.asarray(preNotas) # Pasar el array preNotas a un array de Numpy
 preNotasNP.view('d,i8,i8').sort(axis = 0) # Ordenar el array con respecto a la columna 0 (tiempo)
 
@@ -169,8 +151,19 @@ for nota in preNotasNP:
 	if (nota[1] == 1): anadirNota(nota[0], int(nota[2]))
 	else: quitarNota(nota[0], int(nota[2]))
 
-for a in notas:
-	print(a)
+# Mirar si hay mas de 6 canales abiertos a la vez
+for nota in notas:
+	if (nota[1] == 1): canalesUtilizados += 1
+	else:	canalesUtilizados -= 1
+	
+	if (canalesUtilizados > 6):
+		print("En", nota[0], "se necesitarían", canalesUtilizados, "canales.")
+		preguntar = True
+
+if (preguntar): # Preguntar si quiere continuar
+	if (input("\n \nEl archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
+else:
+	input("Canción lista, dale a Enter para empezar. \n")
 
 # Conexion serial
 with serial.Serial(puerto, 115200, timeout=1) as ser:
