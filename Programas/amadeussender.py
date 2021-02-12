@@ -1,4 +1,4 @@
-# Uso: python amadeussender.py "ARCHIVO.csv" "PUERTO"
+# Uso: python amadeussender.py "ARCHIVO.csv" "PUERTO" "VOLUMEN=10"
 
 # -------- Esta versión modificada de amadeussender permite tocar pistas (tracks) simultaneas que en el archivo .csv no están la una después de la otra
 
@@ -27,6 +27,19 @@ total = 0 	# Tiempo total
 archivo = sys.argv[1]	# Guarda el nombre del archivo .csv que se abre
 
 puerto = sys.argv[2]	# Guarda el puerto al que hay que conectarse
+
+volumen = volumenMax	# Guarda el volumen al que se tienen que poner los canales una vez que estén activos (el predeterminado es el máximo)
+
+if (len(sys.argv) >= 4):
+	try:
+		volumen = int(sys.argv[3])
+		
+		if (volumen > 15):
+			print("El valor máximo es 15")
+			quit()
+	except ValueError:
+		print("El volumen introducido", sys.argv[3], "no es válido, por favor introduce un número intero entre 0 y", volumenMax)
+		quit()
 
 preNotas = [] # Guarda un array con todas las notas que hay, aunque sean de pistas diferentes. Es un array de arrays y cada array tiene [Tiempo, 1 = encender : 0 = apagar, nota]
 
@@ -92,7 +105,7 @@ def getLoadingBar(actual, final):
 
 # Anade una nota al array notas (duh)
 def anadirNota(tiempo, nota):
-	global ultimavez
+	global ultimavez, volumen
 	if (tiempo - ultimavez < 0): return # Sanity check
 	
 	posicion = getCanalDisponible()	# Coger el primer canal que este disponible
@@ -111,7 +124,7 @@ def anadirNota(tiempo, nota):
 	# Ahora vamos a enviar 3 mensajes, el primero para configurar el registro inferior del canal, el segundo para modificar el registro superior y el ultimo para poner el volumen al maximo. TODO: OPTIMIZAR PARA QUE NO SE TENGA QUE PONER SIEMPRE EL VOLUMEN AL MAXIMO
 	notas.append([chip, canal * 2, combis[nota][1]])
 	notas.append([chip, (canal * 2) + 1, combis[nota][0]])
-	notas.append([chip, canal + 9, volumenMax])
+	notas.append([chip, canal + 8, volumen])
 
 # Quita la nota y pone el canal como disponible
 def quitarNota(tiempo, nota):
@@ -127,7 +140,7 @@ def quitarNota(tiempo, nota):
 	dispo[posicion] = -1	# Marcar el canal como disponible
 	
 	# Para desactivar un canal es facil, solamente ponemos el volumen a 0 :)
-	notas.append([posicion // 3, (posicion % 3) + 9, 0])
+	notas.append([posicion // 3, (posicion % 3) + 8, 0])
 
 # ------------ CODIGO ------------
 
@@ -147,7 +160,6 @@ with open(archivo) as csv_file:
 			preNotas.append([int(row[1]) * tempo, 0, int(row[4])])
 		else: continue
 
-
 if (input("\n \n Cancion lista, pulsa cualquier tecla para continuar \n")): print()
 
 preNotasNP = np.asarray(preNotas) # Pasar el array preNotas a un array de Numpy
@@ -156,6 +168,9 @@ preNotasNP.view('d,i8,i8').sort(axis = 0) # Ordenar el array con respecto a la c
 for nota in preNotasNP:
 	if (nota[1] == 1): anadirNota(nota[0], int(nota[2]))
 	else: quitarNota(nota[0], int(nota[2]))
+
+for a in notas:
+	print(a)
 
 # Conexion serial
 with serial.Serial(puerto, 115200, timeout=1) as ser:
@@ -174,8 +189,8 @@ with serial.Serial(puerto, 115200, timeout=1) as ser:
 		
 		print(" {}".format(getTiempo(suma) + " " + getLoadingBar(i, len(tiemposEntreNotas))) + " " + getTiempo(total), end="\r")
 	
-	time.sleep(1)	# Descansar después de la actuación
-	for c in range(len(canales)):	# Desactivar todos los canales
+	time.sleep(10)	# Descansar después de la actuación
+	for c in range(len(dispo)):	# Desactivar todos los canales
 		t = bytearray([c // 3, (c % 3) + 9, 0])	# Preparar el mensaje
 		ser.write(t)	# Enviar el mensaje
 		time.sleep(0.2) # Dejar un poco de tiempo entre canal mensaje y mensaje

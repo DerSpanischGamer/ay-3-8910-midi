@@ -1,5 +1,4 @@
 #include "Amadeus.h"
-#include <EEPROM.h>
 
 // ----------- Constantes -----------
 

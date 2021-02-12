@@ -71,7 +71,9 @@ Para que funcione lo que envía, hay que instalar en el Arduino el código adecuad
 
 - **amadeussender.py** : una versión mejorada de amadeussender_legacy.py que permite detectar diferentes pistas que tocarían simultaneamente. Se obtiene pasando por todo el archivo .csv y una vez que se tienen todas las notas, se ordenan por tiempo, y después es todo igual a amadeussender.py
 
-Para usarlo: `python amadeussender.py "ARCHIVO.csv" "PUERTO"`
+Para usarlo: `python amadeussender.py "ARCHIVO.csv" "PUERTO" "VOLUMEN=15"`
+
+El valor predeterminado para el volumen es el máximo.
 
 - **csv-midi.py** : EN DESARROLLO. Cuando esté acabado guardará los contenidos de un archivo .mid en 768 bytes para que lo lea un microprocesador como el 6502 o Z80 :)
 

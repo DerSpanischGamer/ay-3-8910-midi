@@ -140,8 +140,6 @@ with open(archivo) as csv_file:
 			quitarNota(int(row[1]) * tempo, int(row[4]))
 		else: continue
 
-print(temp)
-
 if (input("\n \n Cancion lista, pulsa cualquier tecla para continuar \n")): print()
 
 # Conexion serial
