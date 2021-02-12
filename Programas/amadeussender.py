@@ -161,7 +161,7 @@ for nota in notas:
 		preguntar = True
 
 if (preguntar): # Preguntar si quiere continuar
-	if (input("\n \nEl archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
+	if (input("El archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
 else:
 	input("Canción lista, dale a Enter para empezar. \n")
 
@@ -182,7 +182,7 @@ with serial.Serial(puerto, 115200, timeout=1) as ser:
 		
 		print(" {}".format(getTiempo(suma) + " " + getLoadingBar(i, len(tiemposEntreNotas))) + " " + getTiempo(total), end="\r")
 	
-	time.sleep(10)	# Descansar después de la actuación
+	time.sleep(1)	# Descansar después de la actuación
 	for c in range(len(dispo)):	# Desactivar todos los canales
 		t = bytearray([c // 3, (c % 3) + 9, 0])	# Preparar el mensaje
 		ser.write(t)	# Enviar el mensaje
