@@ -53,6 +53,12 @@ Boy oh boy, es aquí que empieza la diversión. Primero, los archivos .exe son med
 
 Ok, llegamos a los archivos .py que son los interesantes:
 
+- **amadeusguardar.py** : sirve para guardar una canción que ya está en .csv desde un midi en un archivo .amds (es un archivo .csv pero he puesto la extensión personalizada para no confundirme y que mole más jejeje).
+
+Uso: `python amadeusguardar.py "ARCHIVO.csv" "SALIDA"`
+
+Nota: no hace falta poner SALIDA.amds, aunque tambien se puede. Tambien se puede poner SALIDA.csv, aunque el archivo saldrá como SALIDA.amds. Para abrir los archivos .amds se puede cambiar la extensión a .csv o con click derecho > Abrir con > Notepad++ para los pros o Excel/Libreoffice Calc para los noobs.
+
 - **amadeussender_legacy.py** : sirve para poder utilizar los dos chips de una [placa Amadeus](https://www.youtube.com/watch?v=V24AyQ2n8vY) o un Arduino que esté conectado de la misma manera. La diferencia entre este archivo y **midisender.py** es que este puede manejar **6** canales simultáneos, en vez de 3 tristes y solitarios canales.
 
 Para usarlo: `python amadeussender_legacy.py "ARCHIVO.csv" "PUERTO"`

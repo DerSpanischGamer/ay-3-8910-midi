@@ -31,8 +31,9 @@ volumen = volumenMax	# Guarda el volumen al que se tienen que poner los canales 
 
 preNotas = [] # Guarda un array con todas las notas que hay, aunque sean de pistas diferentes. Es un array de arrays y cada array tiene [Tiempo, 1 = encender : 0 = apagar, nota]
 
+tiempos = []					# Guarda todos los tiempos para hacer los numeros más pequeños
 notas = [[], []] 				# Array de 2 arrays (0 = primero, 1 = segundo) de arrays de 1 int + 14 bytes que guardan cada uno el valor del momento + el valor de cada registor en ese momento
-tiemposEntreNotas = [] 	# Delay que hay entre cambios de notas
+tiemposEntreNotas = [] 			# Delay que hay entre cambios de notas
 
 canalesUtilizados = 0	# Utilizado para ver cuantos canales estan abiertos en un momento dado
 
@@ -85,6 +86,8 @@ def anadirNota(tiempo, nota):
 		notas[chip][-1][canal + 9] = volumen
 	else:
 		ultima = notas[chip][-1][:]	# Coger el ultimo cambio que paso
+
+		tiempos.append(tiempo)
 		
 		ultima[0] = tiempo								# Poner el nuevo tiempo
 		ultima[(canal * 2) + 1] = combis[nota][1]		# Poner la parte inferior de la nota
@@ -114,6 +117,8 @@ def quitarNota(tiempo, nota):
 	else:								# Si el tiempo es diferente, sí que hay que añadir otra "entrada"
 		ultima = notas[chip][-1][:]
 		
+		tiempos.append(tiempo)
+		
 		ultima[0] = tiempo				# Guardar el tiempo en el que hay que silenciarlo
 		ultima[(canal * 2) + 1] = 0		# Poner la frecuencia a 0
 		ultima[(canal * 2) + 2] = 0		# Poner la frecuencia a 0
@@ -141,10 +146,7 @@ with open(archivo) as csv_file:
 preNotasNP = np.asarray(preNotas) 			# Pasar el array preNotas a un array de Numpy
 preNotasNP[preNotasNP[:, 0].argsort()]		# Ordenar el array gracias a numpy
 
-# Visto que siempre tiene que haber minimo un chip
-notas[0].append(["INFOS", tempo, 2]) # El primer valor guarda primero el string INFO para que de error si se intenta parsear, el segundo valor es el intervalo entre lines horizontales, el tercer valor indica el número de chips
 notas[0].append([0] * 15)   # El estado inicial de todos los registros del primer chip
-
 notas[1].append([0] * 15)   # El estado inicial de todos los registros del segundo chip
 
 for nota in preNotasNP:
@@ -159,8 +161,18 @@ else:
 # Guardar array
 with open(salida + ".amds", mode = 'w', newline = '') as output:
 	writer = csv.writer(output, delimiter = ',', quotechar = "'", quoting = csv.QUOTE_MINIMAL)
+
+	# Escribir información sobre la canción que hemos guardado
+	writer.writerow(["INFOS", tempo, 2]) 	# El primer valor guarda primero el string INFO para que de error si se intenta parsear, el segundo valor es el intervalo entre lines horizontales, el tercer valor indica el número de chips
 	
+	# Escribir toda la información de lo que hace el primer chip
 	for nota in notas[0]:
 		writer.writerow(nota)
+	
+	# Indicar que empieza el segundo chip
+	writer.writerow(["SEGUNDO CHIP"])		# El primer valor guarda un string para que de error si se intenta parsear. TODO: a lo mejor hacer que sea un 2 pero como numero, no escrito, para poder hacer que, en teoria, se puedan soportar infinitos chips simultaneos
 
+	# Escribir toda la información de lo que hace el segundo chip
+	for nota in notas[1]:
+		writer.writerow(nota)
 print("Fin")

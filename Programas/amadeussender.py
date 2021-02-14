@@ -165,6 +165,11 @@ for nota in notas:
 		print("En", nota[0], "se necesitarían", canalesUtilizados, "canales.")
 		preguntar = True
 
+# Calcular el tiempo sumando todos los tiempos entre notas
+for i in tiemposEntreNotas: total += i
+total /= 1000 # Pasar a segundos
+
+
 if (preguntar): # Preguntar si quiere continuar
 	if (input("El archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
 else:
@@ -172,10 +177,6 @@ else:
 
 # Conexion serial
 with serial.Serial(puerto, 115200, timeout=1) as ser:
-	for i in tiemposEntreNotas: total += i
-	
-	total /= 1000 # Pasar a segundos
-	
 	print("Tocando:", archivo)
 	
 	for i in range(len(tiemposEntreNotas)):
