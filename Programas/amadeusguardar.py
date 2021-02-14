@@ -1,11 +1,9 @@
-# Uso: python amadeussender.py "ARCHIVO.csv" "PUERTO" "VOLUMEN=10"
+# Uso: python amadeusguardar.py "ARCHIVO.csv" "SALIDA.amds"
 
-# -------- Esta versión modificada de amadeussender permite tocar pistas (tracks) simultaneas que en el archivo .csv no están la una después de la otra
+# -------- Guarda un archivo .csv que venga de un archivo midi (una canción), en un archivo .amds que pueda ser leido por el programa de edicion de musica para la placa Amadeus (o similar)
 
 import sys
 import csv
-import time
-import serial
 import numpy as np
 
 # ------------ CONSTANTES ------------
@@ -17,40 +15,30 @@ volumenMax = 15
 # Combis
 combis = [[-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [-1, -1], [15, 209], [14, 238], [14, 24], [13, 77], [12, 142], [11, 218], [11, 47], [10, 143], [9, 247], [9, 104], [8, 224], [8, 97], [7, 232], [7, 119], [7, 12], [6, 166], [6, 71], [5, 237], [5, 151], [5, 71], [4, 251], [4, 180], [4, 112], [4, 48], [3, 244], [3, 187], [3, 134], [3, 83], [3, 35], [2, 246], [2, 203], [2, 163], [2, 125], [2, 90], [2, 56], [2, 24], [1, 250], [1, 221], [1, 195], [1, 169], [1, 145], [1, 123], [1, 101], [1, 81], [1, 62], [1, 45], [1, 28], [1, 12], [0, 253], [0, 238], [0, 225], [0, 212], [0, 200], [0, 189], [0, 178], [0, 168], [0, 159], [0, 150], [0, 142], [0, 134], [0, 126], [0, 119], [0, 112], [0, 106], [0, 100], [0, 94], [0, 89], [0, 84], [0, 79], [0, 75], [0, 71], [0, 67], [0, 63], [0, 59], [0, 56], [0, 53], [0, 50], [0, 47], [0, 44], [0, 42], [0, 39], [0, 37], [0, 35], [0, 33], [0, 31], [0, 29], [0, 28], [0, 26], [0, 25], [0, 23], [0, 22], [0, 21], [0, 19], [0, 18], [0, 17], [0, 16], [0, 15], [0, 14], [0, 14], [0, 13], [0, 12], [0, 11], [0, 11], [0, 10], [0, 9], [0, 9], [0, 8], [0, 8], [0, 7], [0, 7], [0, 7], [0, 6], [0, 6], [0, 5], [0, 5], [0, 5], [0, 4], [0, 4], [0, 4], [0, 4], [0, 3], [0, 3], [0, 3], [0, 3], [0, 3], [0, 2], [0, 2], [0, 2], [0, 2], [0, 2], [0, 2], [0, 2], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1]]
 
-# Variables tiempo
-
-suma = 0 	# Se encarga de contar cuantos delays se han hecho, sumando se obtiene cuanto ha pasado desde el principio
-total = 0 	# Tiempo total
-
 # Otras variables
 
 archivo = sys.argv[1]	# Guarda el nombre del archivo .csv que se abre
 
-puerto = sys.argv[2]	# Guarda el puerto al que hay que conectarse
+salida = sys.argv[2]	# Guarda el nombre del archivo .amds
+
+# Tratar un poco la salida para que no aparezcan dos veces el mismo .amds o .csv.amds
+if (salida.endswith(".amds")):
+	salida = salida[:-5]
+elif (salida.endswith(".csv")):
+	salida = salida[:-4]
 
 volumen = volumenMax	# Guarda el volumen al que se tienen que poner los canales una vez que estén activos (el predeterminado es el máximo)
 
-if (len(sys.argv) >= 4):
-	try:
-		volumen = int(sys.argv[3])
-		
-		if (volumen > 15):
-			print("El valor máximo es 15")
-			quit()
-	except ValueError:
-		print("El volumen introducido", sys.argv[3], "no es válido, por favor introduce un número intero entre 0 y", volumenMax)
-		quit()
-
 preNotas = [] # Guarda un array con todas las notas que hay, aunque sean de pistas diferentes. Es un array de arrays y cada array tiene [Tiempo, 1 = encender : 0 = apagar, nota]
 
-notas = [] 				# Array de arrays de 3 bytes que guardan: [chip, registro, valor]
+notas = [[], []] 				# Array de 2 arrays (0 = primero, 1 = segundo) de arrays de 1 int + 14 bytes que guardan cada uno el valor del momento + el valor de cada registor en ese momento
 tiemposEntreNotas = [] 	# Delay que hay entre cambios de notas
 
 canalesUtilizados = 0	# Utilizado para ver cuantos canales estan abiertos en un momento dado
 
 ultimavez = 0 # Ultimo cambio entre activar / desactivar una nota
 
-tempo = 0 # Guarda los milisegundos / midi clock pulses, para obtener los milisegundos solo hay que multiplicar por los clk pulses
+tempo = 0 # Guarda los milisegundos / midi clock pulses, para obtener los milisegundos solo hay que multiplicar por los clk pulses. Tambien se puede usar como la "resolución" del tiempo
 
 dispo = [-1, -1, -1, -1, -1, -1] # Guarda la nota que se esta tocando en cada canal (los 3 primeros son los canales A, B y C [en ese order] del primer chip, y después el mismo orden A, B y C del segundo chip)
 
@@ -72,33 +60,14 @@ def getCanalNoDispo(nota):
 		if (nota == dispo[i]): return i
 	return -1
 
-def getTiempo(tiempo):
-	minutos = str(int(tiempo % 60))
-	
-	while (len(minutos) < 2):
-		minutos = "0" + minutos
-    
-	temp = str(int(tiempo // 60)) + ":" + minutos
-	return temp
-
-def getLoadingBar(actual, final):
-	actual = int(25 * (actual / final))
-	
-	temp = ""
-	for i in range(actual): temp += "█"
-	for i in range(25 - actual): temp += "░"
-	
-	if (len(temp) > 25): temp = temp[0:24]
-	return temp
-
-
 # Anade una nota al array notas (duh)
 def anadirNota(tiempo, nota):
 	global ultimavez, volumen
+	
 	if (tiempo - ultimavez < 0): return # Sanity check
 	
 	posicion = getCanalDisponible()	# Coger el primer canal que este disponible
-	if (posicion == -1 or combis[nota][0] == -1): return		# Si no hay disponibles, i.e. la funcion devuelve -1, no hay nada que hacer, entonces no se guarda la nota
+	if (posicion == -1): return		# Si no hay disponibles, i.e. la funcion devuelve -1, no hay nada que hacer, entonces no se guarda la nota
 	
 	chip = posicion // 3	# El chip es el resultado de la division euclidiana (o entera) [posicion < 3 -> // 3 = 0 -> primer chip; posicion >= 3 -> // 3 = 1 -> segundo chip]
 	canal = posicion % 3	# canal {0, 1, 2}
@@ -110,26 +79,47 @@ def anadirNota(tiempo, nota):
 	
 	dispo[posicion] = nota # Indicar que el canal no esta disponible quitando el -1 y poniendo la nota que esta sonando
 
-	# Ahora vamos a enviar 3 mensajes, el primero para configurar el registro inferior del canal, el segundo para modificar el registro superior y el ultimo para poner el volumen al maximo. TODO: OPTIMIZAR PARA QUE NO SE TENGA QUE PONER SIEMPRE EL VOLUMEN AL MAXIMO
-	notas.append([chip, canal * 2, combis[nota][1]])
-	notas.append([chip, (canal * 2) + 1, combis[nota][0]])
-	notas.append([chip, canal + 8, volumen])
+	if (notas[chip][-1][0] == tiempo):
+		notas[chip][-1][(canal * 2) + 1] = combis[nota][1]
+		notas[chip][-1][(canal * 2) + 2] = combis[nota][0]
+		notas[chip][-1][canal + 9] = volumen
+	else:
+		ultima = notas[chip][-1][:]	# Coger el ultimo cambio que paso
+		
+		ultima[0] = tiempo								# Poner el nuevo tiempo
+		ultima[(canal * 2) + 1] = combis[nota][1]		# Poner la parte inferior de la nota
+		ultima[(canal * 2) + 2] = combis[nota][0]		# Poner la parte superior de la nota
+		ultima[canal + 9] = volumen						# Poner el volumen al nivel seleccionado
+		
+		notas[chip].append(ultima)						# Guardar la versión modificada de la nota
 
 # Quita la nota y pone el canal como disponible
 def quitarNota(tiempo, nota):
 	global ultimavez
-	if (tiempo - ultimavez < 0): return	# Sanity check
+	if (tiempo - ultimavez < 0): return		# Sanity check
 	
-	posicion = getCanalNoDispo(nota)	# Coger el canal que esta tocando la nota nota
-	if (posicion == -1): return		# Si por alguno razon algo fuera mal, pararse
+	posicion = getCanalNoDispo(nota)		# Coger el canal que esta tocando la nota nota
+	if (posicion == -1): return				# Si por alguno razon algo fuera mal, pararse
 	
-	tiemposEntreNotas.append(tiempo - ultimavez)
-	ultimavez = tiempo
+	chip = posicion // 3
+	canal = posicion % 3
 	
 	dispo[posicion] = -1	# Marcar el canal como disponible
 	
 	# Para desactivar un canal es facil, solamente ponemos el volumen a 0 :)
-	notas.append([posicion // 3, (posicion % 3) + 8, 0])
+	if (notas[chip][-1][0] == tiempo): # Si el tiempo es el mismo, de nada sirve añadir otro momento con el mismo tiempo, solo hay que modificar los registros necesarios
+		notas[chip][-1][(canal * 2) + 1] = 0
+		notas[chip][-1][(canal * 2) + 2] = 0
+		notas[chip][-1][canal + 9] = 0
+	else:								# Si el tiempo es diferente, sí que hay que añadir otra "entrada"
+		ultima = notas[chip][-1][:]
+		
+		ultima[0] = tiempo				# Guardar el tiempo en el que hay que silenciarlo
+		ultima[(canal * 2) + 1] = 0		# Poner la frecuencia a 0
+		ultima[(canal * 2) + 2] = 0		# Poner la frecuencia a 0
+		ultima[canal + 9] = 0			# Poner el volumen a 0
+		
+		notas[chip].append(ultima)		# Añadir la nueva version actualizada
 
 # ------------ CODIGO ------------
 
@@ -142,55 +132,35 @@ with open(archivo) as csv_file:
 		if (row[2] == " Header"): pulsos = int(row[5])	# Si es el Header, coger la información necesaria (los pulsos)
 		if (tempo == 0 and int(row[1]) == 0 and row[2] == " Tempo"): tempo = int(row[3])/(pulsos * 1000) # ms/clck para obtener ms multiplicar por el momento
 		
-		
 		if (row[2] == " Note_on_c"):
-			preNotas.append([int(row[1]) * tempo, 1, int(row[4])])
+			preNotas.append([int(row[1]), 1, int(row[4])])
 		elif (row[2] == " Note_off_c"):
-			preNotas.append([int(row[1]) * tempo, 0, int(row[4])])
+			preNotas.append([int(row[1]), 0, int(row[4])])
 		else: continue
 
-preNotasNP = np.asarray(preNotas) # Pasar el array preNotas a un array de Numpy
-preNotasNP.view('d,i8,i8').sort(axis = 0) # Ordenar el array con respecto a la columna 0 (tiempo)
+preNotasNP = np.asarray(preNotas) 			# Pasar el array preNotas a un array de Numpy
+preNotasNP[preNotasNP[:, 0].argsort()]		# Ordenar el array gracias a numpy
+
+# Visto que siempre tiene que haber minimo un chip
+notas[0].append(["INFOS", tempo, 2]) # El primer valor guarda primero el string INFO para que de error si se intenta parsear, el segundo valor es el intervalo entre lines horizontales, el tercer valor indica el número de chips
+notas[0].append([0] * 15)   # El estado inicial de todos los registros del primer chip
+
+notas[1].append([0] * 15)   # El estado inicial de todos los registros del segundo chip
 
 for nota in preNotasNP:
 	if (nota[1] == 1): anadirNota(nota[0], int(nota[2]))
 	else: quitarNota(nota[0], int(nota[2]))
 
-# Mirar si hay mas de 6 canales abiertos a la vez
-for nota in notas:
-	if (nota[1] == 1): canalesUtilizados += 1
-	else:	canalesUtilizados -= 1
-	
-	if (canalesUtilizados > 6):
-		print("En", nota[0], "se necesitarían", canalesUtilizados, "canales.")
-		preguntar = True
-
 if (preguntar): # Preguntar si quiere continuar
 	if (input("El archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
 else:
-	input("Canción lista, dale a Enter para empezar. \n")
+	input("Canción lista, dale a Enter para guardar. \n")
 
-# Conexion serial
-with serial.Serial(puerto, 115200, timeout=1) as ser:
-	for i in tiemposEntreNotas: total += i
+# Guardar array
+with open(salida + ".amds", mode = 'w', newline = '') as output:
+	writer = csv.writer(output, delimiter = ',', quotechar = "'", quoting = csv.QUOTE_MINIMAL)
 	
-	total /= 1000 # Pasar a segundos
-	
-	print("Tocando:", archivo)
-	
-	for i in range(len(tiemposEntreNotas)):
-		time.sleep(tiemposEntreNotas[i] / 1000)
-		suma += tiemposEntreNotas[i] / 1000
-		
-		t = bytearray(notas[i])	# Transformar cada array en un array de bytes
-		ser.write(t)			# Y enviar el array de bytes
-		
-		print(" {}".format(getTiempo(suma) + " " + getLoadingBar(i, len(tiemposEntreNotas))) + " " + getTiempo(total), end="\r")
-	
-	time.sleep(1)	# Descansar después de la actuación
-	for c in range(len(dispo)):	# Desactivar todos los canales
-		t = bytearray([c // 3, (c % 3) + 9, 0])	# Preparar el mensaje
-		ser.write(t)	# Enviar el mensaje
-		time.sleep(0.2) # Dejar un poco de tiempo entre canal mensaje y mensaje
+	for nota in notas[0]:
+		writer.writerow(nota)
 
 print("Fin")
