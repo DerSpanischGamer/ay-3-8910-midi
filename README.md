@@ -99,5 +99,13 @@ o
 
 => El primero ejecuta el programa con la frecuencia predeterminada de 2MHz, mientras que el segundo lo hace con una de 1Mhz.
 
+### Carpeta *VideoMaker* (dentro de la carpeta *Programas*)
+
+Contiene el programa **cancionVideo.py**. Este programa necesita un archivo .amds generado por el programa amadeusguardar.py. Lo que hace es generar una secuencia de imágenes (o fotogramas), que luego pueden ser reproducidos a la velocidad que indicada para que muestre el estado de los registros a la vez que estos suenan.
+
+Uso: `python cancionVideo.py "ARCHIVO.amds"`
+
+Nota: Aún tengo que ver por qué el vídeo que sale y la canción que se tocan no van a la par cuando deberían durar lo mismo, algo tiene que ver el tiempo de ejecución del código seguramente, pero me da pereza ponerme a hacer timers. Puede que lo haga, pero no en python sino en un programa en C o algo parecido idk. Para pasar de imágenes a vídeo recomiendo utilizar ffmpeg, no lo subo porque no es mío, pero dejo el comando de como pasar las imágenes a vídeo escrito en el archivo comando.txt
+
 CRÉDITOS:
-  -https://github.com/986-Studio/AY-3-3910-Player/blob/master/AY3910RegWrite/AY3910RegWrite.ino PARTE DE ARDUINO
+  -CÓDIGO PARA ENVIAR ÓRDENES A UN AY-3-8910 o YM2149 DESDE UN ARDUIO: https://github.com/986-Studio/AY-3-3910-Player/blob/master/AY3910RegWrite/AY3910RegWrite.ino PARTE DE ARDUINO

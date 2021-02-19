@@ -91,7 +91,6 @@ def getLoadingBar(actual, final):
 	if (len(temp) > 25): temp = temp[0:24]
 	return temp
 
-
 # Anade una nota al array notas (duh)
 def anadirNota(tiempo, nota):
 	global ultimavez, volumen
@@ -168,7 +167,6 @@ for nota in notas:
 # Calcular el tiempo sumando todos los tiempos entre notas
 for i in tiemposEntreNotas: total += i
 total /= 1000 # Pasar a segundos
-
 
 if (preguntar): # Preguntar si quiere continuar
 	if (input("El archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
