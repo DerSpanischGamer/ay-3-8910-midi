@@ -11,7 +11,7 @@ Para poder enviar los archivos midi primero hay qeu tranformarlos en csv con est
 
 Como su nombre indica, en esta carpeta se encuentra el código para que funcione un solo chip conectado a una placa Arduino de la misma manera que se muestra en la imagen [Conexiones.png](https://github.com/DerSpanischGamer/ay-3-8910-midi/blob/master/Conexiones.png)
 
-### Carpeta *https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/AY3910RegWrite-library*
+### Carpeta *[https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/AY3910RegWrite-library](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Amadeus)*
 
 Código que soporta 1 o 2 chips simultáneos. Es una versión simplificada del código anterior, además de más facil de leer gracias a que el código ha sido transformado en [librería](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Amadeus).
 
@@ -35,11 +35,11 @@ Poner un valor VAL en el registro REG del chip C
 
 El resto de funciones son privadas ya que solo sirven para llevar a cabo las funciones que están aquí arriba. Si eres curioso echa un vistazo al código, aunque es literalmente lo mismo que el código de la primera carpeta.
 
-### Carpeta *Canciones*
+### Carpeta *[Canciones](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Canciones)*
 
 No hay mucho que decir, algunas canciones que he buscado yo el archivo .mid y lo he transforamdo en .csv para poder enviarlo.
 
-### Carpeta *Programas*
+### Carpeta *[Programas](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Programas)*
 
 Boy oh boy, es aquí que empieza la diversión. Primero, los archivos .exe son medio a ignorar medio no.
 
@@ -99,7 +99,7 @@ o
 
 => El primero ejecuta el programa con la frecuencia predeterminada de 2MHz, mientras que el segundo lo hace con una de 1Mhz.
 
-### Carpeta *VideoMaker* (dentro de la carpeta *Programas*)
+### Carpeta *[VideoMaker](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Programas/VideoMaker)* (dentro de la carpeta *Programas*)
 
 Contiene el programa **cancionVideo.py**. Este programa necesita un archivo .amds generado por el programa amadeusguardar.py. Lo que hace es generar una secuencia de imágenes (o fotogramas), que luego pueden ser reproducidos a la velocidad que indicada para que muestre el estado de los registros a la vez que estos suenan.
 
