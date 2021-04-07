@@ -125,6 +125,7 @@ void pbSpeedDown(void);
 void pbIncAdd(void);
 void pbDecAdd(void);
 void pbAddChan(void);
+void AddChannelBeginning(void);
 void pbSubChan(void);
 void pbEditPattUp(void);
 void pbEditPattDown(void);

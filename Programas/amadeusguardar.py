@@ -135,7 +135,9 @@ with open(archivo) as csv_file:
 	# Pasar por todo el archivo .csv
 	for row in csv_reader:
 		if (row[2] == " Header"): pulsos = int(row[5])	# Si es el Header, coger la información necesaria (los pulsos)
-		if (tempo == 0 and int(row[1]) == 0 and row[2] == " Tempo"): tempo = int(row[3])/(pulsos * 1000) # ms/clck para obtener ms multiplicar por el momento
+		if (tempo == 0 and int(row[1]) == 0 and row[2] == " Tempo"):
+			ogTime = int(row[3])
+			tempo = int(row[3])/(pulsos * 1000) # ms/clck para obtener ms multiplicar por el momento
 		
 		if (row[2] == " Note_on_c"):
 			preNotas.append([int(row[1]), 1, int(row[4])])
@@ -163,7 +165,7 @@ with open(salida + ".amds", mode = 'w', newline = '') as output:
 	writer = csv.writer(output, delimiter = ',', quotechar = "'", quoting = csv.QUOTE_MINIMAL)
 
 	# Escribir información sobre la canción que hemos guardado
-	writer.writerow(["INFOS", tempo, 2]) 	# El primer valor guarda primero el string INFO para que de error si se intenta parsear, el segundo valor es el intervalo entre lines horizontales, el tercer valor indica el número de chips
+	writer.writerow(["INFOS", int(round((60 * 1000000) / ogTime, 0)) , 2]) 	# El primer valor guarda primero el string INFO para que de error si se intenta parsear, el segundo valor es el tempo en BPM, el tercer valor indica el número de chips
 	
 	# Escribir toda la información de lo que hace el primer chip
 	for nota in notas[0]:

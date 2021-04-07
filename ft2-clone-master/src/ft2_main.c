@@ -52,8 +52,6 @@ static void disableWasapi(void);
 
 int main(int argc, char *argv[])
 {
-	printf("===Running===");
-
 #if defined _WIN32 || defined __APPLE__
 	SDL_version sdlVer;
 #endif
@@ -237,6 +235,11 @@ int main(int argc, char *argv[])
 
 	editor.mainLoopOngoing = true;
 	setupWaitVBL(); // this must be the very last thing done before entering the main loop
+
+	// ----------- NEW CODE :P --------
+	printf("===Running===");
+	AddChannelBeginning();
+	// --------------------------------
 
 	while (editor.programRunning)
 	{

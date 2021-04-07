@@ -2246,13 +2246,13 @@ void tickReplayer(void) // periodically called from audio callback
 		song.musicTime64 += musicTimeTab64[song.speed];
 
 	bool tickZero = false;
-	if (--song.timer == 0)
+	if (--song.timer == 0)	// Called when the timing is fine
 	{
-		song.timer = song.tempo;
+		song.timer = song.tempo;	// Song.tempo = 6 always askip
 		tickZero = true;
 	}
 
-	song.curReplayerTimer = (uint8_t)song.timer; // for audio/video syncing (and recording)
+	song.curReplayerTimer = (uint8_t) song.timer; // for audio/video syncing (and recording)
 
 	const bool readNewNote = tickZero && (song.pattDelTime2 == 0);
 	if (readNewNote)
@@ -2272,15 +2272,20 @@ void tickReplayer(void) // periodically called from audio callback
 			pattPtr = &patt[song.pattNr][song.pattPos * MAX_VOICES];
 		}
 
+		//printf("%d", song.curReplayerPattPos);
+
 		c = stm;
-		for (i = 0; i < song.antChn; i++, c++, pattPtr++)
+		for (i = 0; i < song.antChn; i++, c++, pattPtr++)	// song.antChn number of channels
 		{
+			//printf("%d \n", c->tonNr);	// tonNr ""holds"" the last value if no change has been made, while tonTyp shows the current note
+
+			// Code below useless as will be using Amadeus board as instrument?
 			getNewNote(c, pattPtr);
 			fixaEnvelopeVibrato(c);
 		}
 	}
 	else
-	{
+	{	// Code executed when the tick isn't the one playing the note (surely will handle holding the note [useless for me i think])
 		c = stm;
 		for (i = 0; i < song.antChn; i++, c++)
 		{
@@ -2288,7 +2293,6 @@ void tickReplayer(void) // periodically called from audio callback
 			fixaEnvelopeVibrato(c);
 		}
 	}
-
 	getNextPos();
 }
 

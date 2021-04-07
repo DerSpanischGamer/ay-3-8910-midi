@@ -109,3 +109,4 @@ Nota: Aún tengo que ver por qué el vídeo que sale y la canción que se tocan no v
 
 CRÉDITOS:
   -CÓDIGO PARA ENVIAR ÓRDENES A UN AY-3-8910 o YM2149 DESDE UN ARDUIO: https://github.com/986-Studio/AY-3-3910-Player/blob/master/AY3910RegWrite/AY3910RegWrite.ino PARTE DE ARDUINO
+- CÓDIGO DEL GENIO QUE HIZO EL MUSIC TRACKER ORIGINAL SOBRE EL QUE ESTOY BASANDO EL MUSIC TRACKER PARA LA PLACA AMADEUS: https://github.com/8bitbubsy/ft2-clone

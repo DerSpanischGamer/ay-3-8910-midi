@@ -910,7 +910,7 @@ static void diskOpSave(bool checkOverwrite)
 				return;
 			}
 
-			editor.diskOpReadDir = saveTrack(fileNameU);
+			editor.diskOpReadDir = savePattern(fileNameU);
 			free(fileNameU);
 		}
 		break;
@@ -932,7 +932,7 @@ static void diskOpSave(bool checkOverwrite)
 				return;
 			}
 
-			editor.diskOpReadDir = saveTrack(fileNameU);	// TODO: change to save SONG not TRACK
+			editor.diskOpReadDir = savePattern(fileNameU);	// TODO: change to save SONG not PART
 			free(fileNameU);
 		}
 		break;

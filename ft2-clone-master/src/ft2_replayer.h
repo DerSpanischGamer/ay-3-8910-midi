@@ -156,8 +156,7 @@ instrHeaderTyp;
 
 typedef struct tonTyp_t // must be packed on some systems, even though it consists of bytes only
 {
-	uint16_t ton;	// Need more space, sorry :3
-	uint8_t instr, vol, effTyp, eff;
+	uint8_t ton, instr, vol, effTyp, eff;
 }
 #ifdef __GNUC__
 __attribute__ ((packed))

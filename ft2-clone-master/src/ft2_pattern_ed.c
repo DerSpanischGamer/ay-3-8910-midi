@@ -4,6 +4,7 @@
 #endif
 
 #include <stdio.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "ft2_header.h"
@@ -1239,6 +1240,7 @@ bool saveTrack(UNICHAR *filenameU)
 	}
 
 	const int16_t pattLen = pattLens[nr];
+	cursor.ch = 0;
 	for (int32_t i = 0; i < pattLen; i++)
 		saveBuff[i] = pattPtr[(i * MAX_VOICES) + cursor.ch];
 
@@ -1377,20 +1379,74 @@ bool savePattern(UNICHAR *filenameU)
 
 	uint16_t pattLen = pattLens[nr];
 
+	printf("%d \n", pattLen);
+
 	th.len = pattLen;
 	th.ver = 1;
 
-	if (fwrite(&th, 1, sizeof (th), f) != sizeof (th))
+	/* ----- .amds (Amadeus) FORMAT
+	* INFOS,BPM,#CHIPS
+	* timeStamp,...reg data...
+	* timeStamp,...reg data...
+	* ...
+	* timeStamp,...reg data...
+	* SEGUNDO
+	* timeStamp,...reg data...
+	* timeStamp,...reg data...
+	* timeStamp,...reg data...
+	* ...
+	*/
+
+	// --- Preparing the header
+	char amdsHeader[10 + 1 + 1 + 1] = { 'I', 'N', 'F', 'O', 'S', ',', '\0' };	// 10 base for INFOS and comas, 1 for the number of chips, 1 for the new line, and 1 for the final \0
+	char num[3 + 1];
+
+	itoa(song.speed, num, 10);	// Save the tempo as a string
+
+	strcat(amdsHeader, num);
+
+	amdsHeader[9] = ',';
+	amdsHeader[10] = '2';
+	amdsHeader[11] = '\n';
+	amdsHeader[12] = '\0';
+
+	// --- Done with the header
+
+	// Save the header data
+	if (fwrite(amdsHeader, sizeof(char), 13, f) != sizeof (amdsHeader))
 	{
 		fclose(f);
-		okBox(0, "System message", "General I/O error during saving! Is the file in use?");
+		okBox(0, "System message", "General I/O error during saving of header! Is the file in use?");
 		return false;
 	}
 
+	// Save the actual music
+
+	while (song.pattNr > 0) { pbPosEdPattDown(); }	// Go to first tab
+	while (song.songPos != 0) { pbPosEdPosDown(); }	// Go to first ""song""
+
+	for (song.songPos; song.songPos < song.len; song.songPos++) {
+
+		tonTyp* pattPtr = patt[song.pattNr];
+		printf("Scanning %d \n", song.songPos);
+		
+		for (int c = 0; c < pattLen; c++) {
+			for (int i = 0; i < song.antChn; i++, pattPtr++) {
+				printf("%d ", pattPtr->ton);
+			}
+			printf("\n");
+		}
+
+		pbEditPattUp();
+	}
+
+	printf("%d \n", song.len);
+	
+	// Save the PART of the SONG data
 	if (fwrite(pattPtr, pattLen * TRACK_WIDTH, 1, f) != 1)
 	{
 		fclose(f);
-		okBox(0, "System message", "General I/O error during saving! Is the file in use?");
+		okBox(0, "System message", "General I/O error during saving of file! Is the file in use?");
 		return false;
 	}
 
@@ -1501,6 +1557,7 @@ void pbPosEdIns(void)
 
 	ui.updatePosSections = true;
 	ui.updatePosEdScrollBar = true;
+
 	setSongModifiedFlag();
 
 	unlockMixerCallback();
@@ -1556,7 +1613,7 @@ void pbPosEdPattUp(void)
 		}
 
 		if (!songPlaying)
-			editor.editPattern = (uint8_t)song.pattNr;
+			editor.editPattern = (uint8_t) song.pattNr;
 
 		checkMarkLimits();
 		ui.updatePatternEditor = true;
@@ -1803,11 +1860,27 @@ void pbDecAdd(void)
 
 void pbAddChan(void)
 {
-	if (song.antChn > 30)
+	if (song.antChn > 14)	// Max 2 channels
 		return;
 
 	lockMixerCallback();
-	song.antChn += 2;
+	song.antChn += 14;
+
+	hideTopScreen();
+	showTopLeftMainScreen(true);
+	showTopRightMainScreen();
+
+	if (ui.patternEditorShown)
+		showPatternEditor();
+
+	setSongModifiedFlag();
+	unlockMixerCallback();
+}
+
+void AddChannelBeginning(void)	// We start with 8 but we need 14
+{
+	lockMixerCallback();
+	song.antChn += 6;
 
 	hideTopScreen();
 	showTopLeftMainScreen(true);
@@ -1822,12 +1895,12 @@ void pbAddChan(void)
 
 void pbSubChan(void)
 {
-	if (song.antChn < 4)
+	if (song.antChn <= 14)
 		return;
 
 	lockMixerCallback();
 
-	song.antChn -= 2;
+	song.antChn -= 14;
 
 	checkMarkLimits();
 
