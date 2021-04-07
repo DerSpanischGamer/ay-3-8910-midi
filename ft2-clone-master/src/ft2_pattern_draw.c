@@ -366,18 +366,18 @@ static void drawRowNums(int32_t yPos, uint8_t row, bool selectedRowFlag)
 	}
 }
 
-// DRAWING ROUTINES (WITH VOLUME COLUMN)
+// DRAWING ROUTINES (WITH VOLUME COLUMN) (WHO TF CALLS THIS FUNCTION???)
 
-static void showNoteNum(uint32_t xPos, uint32_t yPos, int16_t ton, uint32_t color)
+static void showNoteNum(uint32_t xPos, uint32_t yPos, int16_t ton, int16_t ins, uint32_t color)
 {
 	xPos += 3;
 
 	assert(ton >= 0 && ton <= 256);
 
-	if (ton <= 0 || ton > 256)
+	if (!ins)	// If no instrument
 		drawEmptyNoteMedium(xPos, yPos, color);
 	else
-		drawNoteMedium(xPos, yPos, ton - 1, color);
+		drawNoteMedium(xPos, yPos, ton, color);
 }
 
 static void showInstrNum(uint32_t xPos, uint32_t yPos, uint8_t ins, uint32_t color)
@@ -702,7 +702,7 @@ void writePattern(int32_t currRow, int32_t pattern)
 			int32_t xPos = 29;
 			for (int32_t j = 0; j < numChannels; j++, note++)
 			{
-				drawNote(xPos, textY, note->ton, color);
+				drawNote(xPos, textY, note->ton, note->instr, color);	// Calls the drawing note function
 				drawInst(xPos, textY, note->instr, color);
 				drawVolEfx(xPos, textY, note->vol, color);
 				drawEfx(xPos, textY, note->effTyp, note->eff, color);
@@ -1028,7 +1028,7 @@ static void drawKeyOffMedium(uint32_t xPos, uint32_t yPos, uint32_t color)
 // Draw the notes !!
 static void drawNoteMedium(uint32_t xPos, uint32_t yPos, int32_t ton, uint32_t color)
 {
-	uint32_t char1, char2, char3;	// char 1 is useless to give some space
+	uint32_t char1, char2, char3;
 
 	char1 = 8*(ton / 100);
 	char2 = 8*((ton / 10) % 10);

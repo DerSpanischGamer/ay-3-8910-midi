@@ -1379,8 +1379,6 @@ bool savePattern(UNICHAR *filenameU)
 
 	uint16_t pattLen = pattLens[nr];
 
-	printf("%d \n", pattLen);
-
 	th.len = pattLen;
 	th.ver = 1;
 
@@ -1408,12 +1406,12 @@ bool savePattern(UNICHAR *filenameU)
 	amdsHeader[9] = ',';
 	amdsHeader[10] = '2';
 	amdsHeader[11] = '\n';
-	amdsHeader[12] = '\0';
+	amdsHeader[12] = 0;
 
-	// --- Done with the header
+	// --- Done with preparing the header
 
 	// Save the header data
-	if (fwrite(amdsHeader, sizeof(char), 13, f) != sizeof (amdsHeader))
+	if (fwrite(amdsHeader, sizeof(char), strlen(amdsHeader), f) != strlen(amdsHeader))
 	{
 		fclose(f);
 		okBox(0, "System message", "General I/O error during saving of header! Is the file in use?");
@@ -1423,31 +1421,56 @@ bool savePattern(UNICHAR *filenameU)
 	// Save the actual music
 
 	while (song.pattNr > 0) { pbPosEdPattDown(); }	// Go to first tab
-	while (song.songPos != 0) { pbPosEdPosDown(); }	// Go to first ""song""
+	
+	// TODO: modify all in order to make it ALWAYS save the first state
+	uint8_t prevVals[28] = { 0 };
+	bool needsChange;
 
-	for (song.songPos; song.songPos < song.len; song.songPos++) {
+	printf("%d \n", song.antChn);
 
-		tonTyp* pattPtr = patt[song.pattNr];
-		printf("Scanning %d \n", song.songPos);
-		
-		for (int c = 0; c < pattLen; c++) {
-			for (int i = 0; i < song.antChn; i++, pattPtr++) {
-				printf("%d ", pattPtr->ton);
+	for (int pos = 0; pos < song.len; pos++) {
+
+		tonTyp* pattPtr = patt[song.pattNr];	// Get the current notes
+
+		for (int c = 0; c < pattLen; c++) {	// For each line
+
+			char curLine[164];	// Start a new line string
+
+			itoa((pos * pattLen) + c, curLine, 10);	// Add time stamp
+			strcat(curLine, ",");					// Add the coma
+
+			needsChange = false;
+			for (int i = 0; i < song.antChn; i++, pattPtr++) {	// Get each note
+				
+				// Test if diff value, if it is, indicate that we need to write this line
+				if (prevVals[i] != pattPtr->ton)
+					needsChange = true;
+				
+				prevVals[i] = pattPtr->ton;	// Update value
+
+				char nums[4];
+				itoa(pattPtr->ton, nums, 10);
+				strcat(curLine, nums);
+				strcat(curLine, ",");
 			}
-			printf("\n");
+
+			// As the maximum number of channels is 32 and the memory is already alocated, we have to compensate
+			pattPtr += (32 - song.antChn); 
+			
+			strcat(curLine, "\n");
+
+#pragma region WriteAndCheck
+			if (needsChange && fwrite(curLine, sizeof(char), strlen(curLine), f) != strlen(curLine))
+			{
+				fclose(f);
+				okBox(0, "System message", "General I/O error during saving of data! Is the file in use?");
+				return false;
+			}
+#pragma endregion WriteAndCheck
 		}
 
-		pbEditPattUp();
-	}
-
-	printf("%d \n", song.len);
-	
-	// Save the PART of the SONG data
-	if (fwrite(pattPtr, pattLen * TRACK_WIDTH, 1, f) != 1)
-	{
-		fclose(f);
-		okBox(0, "System message", "General I/O error during saving of file! Is the file in use?");
-		return false;
+		if (pos + 1 < song.len)	// If the next iteration of the loop is going to happen
+			pbEditPattUp();	// Advance
 	}
 
 	fclose(f);

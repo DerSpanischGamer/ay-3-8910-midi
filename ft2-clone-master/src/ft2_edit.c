@@ -398,7 +398,7 @@ void recordNote(uint8_t note, int8_t vol, bool changeNote)
 				noteData = &patt[nr][(pattpos * MAX_VOICES) + c];
 
 				if (!editor.nextMove)	// If we are about to enter the first number
-					noteData->ton = 1;	// Clear the cell
+					noteData->ton = 0;	// Clear the cell
 
 				uint16_t preNote = note * power(10, 2 - editor.nextMove);	// Need more space than 8 bits in case he introduces a number bigger than 255
 				
