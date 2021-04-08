@@ -1328,21 +1328,24 @@ bool loadPattern(UNICHAR *filenameU)
 
 	lockMixerCallback();
 
+	int prevVals[28] = { -1 };	// Values from the previous line
 	uint16_t pos = 0;
 
 	while (fgets(line, 164, f)) {		// Get the next line
 		uint16_t nums[29] = { 0 };		// Save the timestamp + numbers
 		stringToPattern(line, nums);	// Turn from string to numbers
 		
-		const uint16_t c = nums[0];	// Get the line
+		const uint16_t c = nums[0];		// Get the line
 
 		for (pos; pos < c - 1; pos++)	// Ignore lines where there's nothing
 			pattPtr += 32;
 	
-		// TODO: GUARDAR LAS NOTAS QUE HAN SIDO MODIFICADAS Y PONER UN 1 EN INSTR CUANDO SE MODIFIQUE
 		for (uint8_t i = 1; i < 29; i++, pattPtr++) {
-			pattPtr->ton = nums[i];
-			pattPtr->instr = 1;	// Notify that the note has been changed
+			if (prevVals[i - 1] != nums[i]) {
+				pattPtr->ton = nums[i];		// Save the new value
+				pattPtr->instr = 1;			// Notify that the note has been changed
+				prevVals[i - 1] = nums[i];	// Update the old value
+			}
 		}
 		pattPtr += 4;	// Adding 4 in order to compensate for the 28 from before to get to the 32 channels
 	}
@@ -1464,13 +1467,12 @@ bool savePattern(UNICHAR *filenameU)
 
 		for (int c = 0; c < pattLen; c++) {	// For each line
 
-			char curLine[164];	// Start a new line string
+			char curLine[264];	// Start a new line string 
 
 			itoa((pos * pattLen) + c, curLine, 10);	// Add time stamp
 
 			needsChange = false;
 			for (int i = 0; i < song.antChn; i++, pattPtr++) {	// Get each note
-				
 				// Test if diff value, if it is, indicate that we need to write this line
 				if (pattPtr->instr && prevVals[i] != pattPtr->ton)
 				{
@@ -1480,7 +1482,7 @@ bool savePattern(UNICHAR *filenameU)
 				
 				char nums[4];
 				strcat(curLine, ",");
-				itoa(pattPtr->ton, nums, 10);
+				itoa(prevVals[i], nums, 10);
 				strcat(curLine, nums);
 			}
 
