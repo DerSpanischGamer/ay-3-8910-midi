@@ -728,7 +728,6 @@ static void openFile(UNICHAR *filenameU, bool songModifiedCheck)
 	// file is readable, handle file...
 	switch (FReq_Item)
 	{
-		default:
 		case DISKOP_ITEM_MODULE:
 		{
 			if (songModifiedCheck && song.isModified)
@@ -746,20 +745,13 @@ static void openFile(UNICHAR *filenameU, bool songModifiedCheck)
 		}
 		break;
 
-		case DISKOP_ITEM_INSTR:
-			loadInstr(filenameU);
-		break;
-
-		case DISKOP_ITEM_SAMPLE:
-			loadSample(filenameU, editor.curSmp, false);
-		break;
-
-		case DISKOP_ITEM_PATTERN:
+		default:
+		case DISKOP_ITEM_SONG:
 			loadPattern(filenameU);
 		break;
 
 		case DISKOP_ITEM_TRACK:
-			loadTrack(filenameU);
+			loadPattern(filenameU);
 		break;
 	}
 }
@@ -1221,36 +1213,9 @@ static uint8_t handleEntrySkip(UNICHAR *nameU, bool isDir)
 		switch (FReq_Item)
 		{
 			default:
-			case DISKOP_ITEM_MODULE:
+			case DISKOP_ITEM_SONG:
 			{
-				if (editor.moduleSaveMode == MOD_SAVE_MODE_WAV && !_stricmp("wav", extPtr))
-					break; // show .wav files when save mode is "WAV"
-
-				if (!moduleExtensionAccepted(extPtr))
-					goto skipEntry;
-			}
-			break;
-
-			case DISKOP_ITEM_INSTR:
-			{
-				if (!_stricmp("xi", extPtr))
-					break;
-
-				if (!sampleExtensionAccepted(extPtr))
-					goto skipEntry;
-			}
-			break;
-
-			case DISKOP_ITEM_SAMPLE:
-			{
-				if (!sampleExtensionAccepted(extPtr))
-					goto skipEntry;
-			}
-			break;
-
-			case DISKOP_ITEM_PATTERN:
-			{
-				if (!_stricmp("xp", extPtr))
+				if (!_stricmp("amds", extPtr))
 					break;
 
 				goto skipEntry;
@@ -1259,7 +1224,7 @@ static uint8_t handleEntrySkip(UNICHAR *nameU, bool isDir)
 
 			case DISKOP_ITEM_TRACK:
 			{
-				if (!_stricmp("xt", extPtr))
+				if (!_stricmp("amds", extPtr))
 					break;
 
 				goto skipEntry;

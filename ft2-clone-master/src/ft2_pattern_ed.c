@@ -1265,10 +1265,32 @@ bool saveTrack(UNICHAR *filenameU)
 	return true;
 }
 
+// Takes a string and converts it into a array of uint8_t notes
+void stringToPattern(char* line, uint16_t* notes) {
+	
+	const uint16_t len = strlen(line);
+	
+	uint16_t posL = 0;
+	uint16_t posN = 0;
+	
+	while (posL < len - 1) {
+		if (line[posL] == ',') {
+			notes[posN] = notes[posN] <= 255 ? notes[posN] : 255;
+			posN++;
+			posL++;
+			continue;
+		}
+
+		notes[posN] *= 10;
+		char temp[2] = { line[posL], '\0' };
+		notes[posN] += atoi(temp);
+		posL++;
+	}
+}
+
 bool loadPattern(UNICHAR *filenameU)
 {
-	patternHeaderType th;
-
+#pragma region Interesting
 	FILE *f = UNICHAR_FOPEN(filenameU, "rb");
 	if (f == NULL)
 	{
@@ -1276,42 +1298,56 @@ bool loadPattern(UNICHAR *filenameU)
 		return false;
 	}
 
-	uint16_t nr = editor.editPattern;
-
-	if (!allocatePattern(nr))
+	if (!allocatePattern(0))
 	{
 		okBox(0, "System message", "Not enough memory!");
 		goto loadPattError;
 	}
+#pragma endregion Interesting
 
-	tonTyp *pattPtr = patt[nr];
-	uint16_t pattLen = pattLens[nr];
+	// TODO: LEER HEADER
+	char line[164] = { 0 };		// Save the line
+	char bpm[4] = { 0 };
+	fgets(line, 164, f);
 
-	if (fread(&th, 1, sizeof (th), f) != sizeof (th))
-	{
-		okBox(0, "System message", "General I/O error during loading! Is the file in use?");
-		goto loadPattError;
-	}
+	char *secondC = strrchr(line, ',');
 
-	if (th.ver != 1)
-	{
-		okBox(0, "System message", "Incompatible format version!");
-		goto loadPattError;
-	}
+	memcpy(bpm, &line[6], secondC - line - 6);
+	bpm[secondC - line - 6] = '\0';
+	
+	uint8_t numBPM = atoi(bpm);
+	
+	while (numBPM < song.speed) { pbBPMDown(); }
+	while (numBPM > song.speed) { pbBPMUp(); }
 
-	if (th.len > MAX_PATT_LEN)
-		th.len = MAX_PATT_LEN;
-
-	pattLen = th.len;
+	showDiskOpScreen();	// When calling pbBPM the BPM is redrawn, therefore we need to redraw to not bug it
+	
+	uint16_t nr = 0; // Start at the first track
+	tonTyp* pattPtr = patt[nr];
+	uint16_t pattLen = 64;	// Max size is locked at 64 (40 in HEX)
 
 	lockMixerCallback();
 
-	if (fread(pattPtr, pattLen * TRACK_WIDTH, 1, f) != 1)
-	{
-		unlockMixerCallback();
-		okBox(0, "System message", "General I/O error during loading! Is the file in use?");
-		goto loadPattError;
+	uint16_t pos = 0;
+
+	while (fgets(line, 164, f)) {		// Get the next line
+		uint16_t nums[29] = { 0 };		// Save the timestamp + numbers
+		stringToPattern(line, nums);	// Turn from string to numbers
+		
+		const uint16_t c = nums[0];	// Get the line
+
+		for (pos; pos < c - 1; pos++)	// Ignore lines where there's nothing
+			pattPtr += 32;
+	
+		// TODO: GUARDAR LAS NOTAS QUE HAN SIDO MODIFICADAS Y PONER UN 1 EN INSTR CUANDO SE MODIFIQUE
+		for (uint8_t i = 1; i < 29; i++, pattPtr++) {
+			pattPtr->ton = nums[i];
+			pattPtr->instr = 1;	// Notify that the note has been changed
+		}
+		pattPtr += 4;	// Adding 4 in order to compensate for the 28 from before to get to the 32 channels
 	}
+	
+	fclose(f);
 
 	// non-FT2 security fix: remove overflown (illegal) stuff
 	for (int32_t i = 0; i < pattLen; i++)
@@ -1359,8 +1395,6 @@ loadPattError:
 
 bool savePattern(UNICHAR *filenameU)
 {
-	patternHeaderType th;
-
 	uint16_t nr = editor.editPattern;
 	tonTyp *pattPtr = patt[nr];
 
@@ -1379,8 +1413,6 @@ bool savePattern(UNICHAR *filenameU)
 
 	uint16_t pattLen = pattLens[nr];
 
-	th.len = pattLen;
-	th.ver = 1;
 
 	/* ----- .amds (Amadeus) FORMAT
 	* INFOS,BPM,#CHIPS
@@ -1426,8 +1458,6 @@ bool savePattern(UNICHAR *filenameU)
 	uint8_t prevVals[28] = { 0 };
 	bool needsChange;
 
-	printf("%d \n", song.antChn);
-
 	for (int pos = 0; pos < song.len; pos++) {
 
 		tonTyp* pattPtr = patt[song.pattNr];	// Get the current notes
@@ -1437,21 +1467,21 @@ bool savePattern(UNICHAR *filenameU)
 			char curLine[164];	// Start a new line string
 
 			itoa((pos * pattLen) + c, curLine, 10);	// Add time stamp
-			strcat(curLine, ",");					// Add the coma
 
 			needsChange = false;
 			for (int i = 0; i < song.antChn; i++, pattPtr++) {	// Get each note
 				
 				// Test if diff value, if it is, indicate that we need to write this line
-				if (prevVals[i] != pattPtr->ton)
+				if (pattPtr->instr && prevVals[i] != pattPtr->ton)
+				{
 					needsChange = true;
+					prevVals[i] = pattPtr->ton;	// Update value
+				}
 				
-				prevVals[i] = pattPtr->ton;	// Update value
-
 				char nums[4];
+				strcat(curLine, ",");
 				itoa(pattPtr->ton, nums, 10);
 				strcat(curLine, nums);
-				strcat(curLine, ",");
 			}
 
 			// As the maximum number of channels is 32 and the memory is already alocated, we have to compensate
