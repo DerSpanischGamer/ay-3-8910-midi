@@ -20,11 +20,11 @@ typedef struct editor_t
 	volatile uint8_t loadMusicEvent;
 	volatile FILE *wavRendererFileHandle;
 
+	uint8_t nextMove; // Where the fuck am I ?
+
 	bool autoPlayOnDrop, trimThreadWasDone, throwExit, editTextFlag;
 	bool copyMaskEnable, diskOpReadOnOpen, samplingAudioFlag, editSampleFlag;
 	bool instrBankSwapped, chnMode[MAX_VOICES], NI_Play;
-
-	uint8_t nextMove;	// Where the fuck am I ?
 
 	uint8_t curPlayInstr, curPlaySmp, curSmpChannel, currPanEnvPoint, currVolEnvPoint;
 	uint8_t copyMask[5], pasteMask[5], transpMask[5], smpEd_NoteNr, instrBankOffset, sampleBankOffset;
@@ -48,7 +48,7 @@ typedef struct ui_t
 
 	// top screens
 	bool instrSwitcherShown, aboutScreenShown, helpScreenShown, configScreenShown;
-	bool scopesShown, diskOpShown, nibblesShown, transposeShown, instEditorExtShown;
+	bool scopesShown, diskOpShown, portShown, nibblesShown, transposeShown, instEditorExtShown;
 	bool sampleEditorExtShown, advEditShown, wavRendererShown, trimScreenShown;
 	bool drawBPMFlag, drawSpeedFlag, drawGlobVolFlag, drawPosEdFlag, drawPattNumLenFlag;
 	bool updatePosSections, updatePosEdScrollBar;
@@ -63,7 +63,7 @@ typedef struct ui_t
 	int32_t sampleDataOrLoopDrag;
 
 	// backup flag for when entering/exiting extended pattern editor (TODO: this is lame and shouldn't be hardcoded)
-	bool _aboutScreenShown, _helpScreenShown, _configScreenShown, _diskOpShown;
+	bool _aboutScreenShown, _helpScreenShown, _configScreenShown, _diskOpShown, _portShown;
 	bool _nibblesShown, _transposeShown, _instEditorShown;
 	bool _instEditorExtShown, _sampleEditorExtShown, _patternEditorShown;
 	bool _sampleEditorShown, _advEditShown, _wavRendererShown, _trimScreenShown;

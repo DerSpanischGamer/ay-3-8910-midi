@@ -1026,7 +1026,7 @@ void handleRedrawing(void)
 			{
 				ui.updatePosSections = false;
 
-				if (!ui.diskOpShown)
+				if (!ui.diskOpShown && !ui.portShown)
 				{
 					drawSongRepS();
 					drawSongLength();
@@ -1062,7 +1062,7 @@ void handleRedrawing(void)
 
 			if (!ui.extended)
 			{
-				if (!ui.diskOpShown)
+				if (!ui.diskOpShown && !ui.portShown)
 					drawPlaybackTime();
 
 				if (ui.sampleEditorExtShown)
@@ -1114,7 +1114,7 @@ static void drawReplayerData(void)
 		bool drawPosText = true;
 		if (ui.configScreenShown || ui.nibblesShown     ||
 			ui.helpScreenShown   || ui.aboutScreenShown ||
-			ui.diskOpShown)
+			ui.diskOpShown || ui.portShown)
 		{
 			drawPosText = false;
 		}

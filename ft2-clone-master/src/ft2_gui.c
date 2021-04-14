@@ -1087,6 +1087,7 @@ void drawFramework(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t type)
 
 void showTopLeftMainScreen(bool restoreScreens)
 {
+	ui.portShown = false;
 	ui.diskOpShown = false;
 	ui.sampleEditorExtShown = false;
 	ui.instEditorExtShown = false;
@@ -1108,6 +1109,7 @@ void showTopLeftMainScreen(bool restoreScreens)
 			case 5: ui.advEditShown = true; break;
 			case 6: ui.wavRendererShown = true; break;
 			case 7: ui.trimScreenShown = true; break;
+			case 8: ui.portShown = false; break;
 		}
 
 		if (ui.oldTopLeftScreen > 0)
@@ -1116,7 +1118,7 @@ void showTopLeftMainScreen(bool restoreScreens)
 
 	ui.oldTopLeftScreen = 0;
 
-	if (ui.diskOpShown)
+	if (ui.diskOpShown && !ui.portShown)
 	{
 		showDiskOpScreen();
 	}
@@ -1319,13 +1321,14 @@ void hideTopRightMainScreen(void)
 
 void setOldTopLeftScreenFlag(void)
 {
-	     if (ui.diskOpShown)          ui.oldTopLeftScreen = 1;
+		 if (ui.diskOpShown)          ui.oldTopLeftScreen = 1;
 	else if (ui.sampleEditorExtShown) ui.oldTopLeftScreen = 2;
 	else if (ui.instEditorExtShown)   ui.oldTopLeftScreen = 3;
 	else if (ui.transposeShown)       ui.oldTopLeftScreen = 4;
 	else if (ui.advEditShown)         ui.oldTopLeftScreen = 5;
 	else if (ui.wavRendererShown)     ui.oldTopLeftScreen = 6;
 	else if (ui.trimScreenShown)      ui.oldTopLeftScreen = 7;
+	else if (ui.portShown)			  ui.oldTopLeftScreen = 8;
 }
 
 void hideTopLeftScreen(void)

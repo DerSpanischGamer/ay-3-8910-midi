@@ -24,6 +24,7 @@
 #include "ft2_trim.h"
 #include "ft2_sample_ed_features.h"
 #include "ft2_structs.h"
+#include "serialCom.h"
 
 keyb_t keyb; // globalized
 
@@ -311,7 +312,7 @@ static void handleKeys(SDL_Keycode keycode, SDL_Scancode scanKey)
 
 			if (!ui.nibblesShown     && !ui.configScreenShown &&
 				!ui.aboutScreenShown && !ui.diskOpShown       &&
-				!ui.helpScreenShown  && !ui.extended)
+				!ui.helpScreenShown  && !ui.extended && !ui.portShown)
 			{
 				drawIDAdd();
 			}
@@ -826,7 +827,7 @@ static bool checkModifiedKeys(SDL_Keycode keycode)
 			}
 			else if (keyb.leftCtrlPressed)
 			{
-				if (!ui.diskOpShown)
+				if (!ui.diskOpShown && !ui.portShown)
 					showDiskOpScreen();
 
 				return true;
@@ -1128,6 +1129,7 @@ static bool checkModifiedKeys(SDL_Keycode keycode)
 				if (ui.helpScreenShown)      hideHelpScreen();
 				if (ui.nibblesShown)         hideNibblesScreen();
 				if (ui.diskOpShown)          hideDiskOpScreen();
+				if (ui.portShown)			 hidePorts();
 				if (ui.advEditShown)         hideAdvEdit();
 				if (ui.wavRendererShown)     hideWavRenderer();
 				if (ui.trimScreenShown)      hideTrimScreen();

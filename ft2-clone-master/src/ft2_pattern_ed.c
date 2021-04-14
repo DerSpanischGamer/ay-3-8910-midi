@@ -595,6 +595,7 @@ void patternEditorExtended(void)
 	ui._helpScreenShown = ui.helpScreenShown;
 	ui._configScreenShown = ui.configScreenShown;
 	ui._diskOpShown = ui.diskOpShown;
+	ui.portShown = ui.portShown;
 	ui._nibblesShown = ui.nibblesShown;
 	ui._transposeShown = ui.transposeShown;
 	ui._instEditorShown = ui.instEditorShown;
@@ -678,6 +679,7 @@ void exitPatternEditorExtended(void)
 	ui.helpScreenShown = ui._helpScreenShown;
 	ui.configScreenShown = ui._configScreenShown;
 	ui.diskOpShown = ui._diskOpShown;
+	ui.portShown = ui._portShown;
 	ui.nibblesShown = ui._nibblesShown;
 	ui.transposeShown = ui._transposeShown;
 	ui.instEditorShown = ui._instEditorShown;

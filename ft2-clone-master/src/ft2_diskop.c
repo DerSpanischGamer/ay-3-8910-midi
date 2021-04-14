@@ -1057,7 +1057,7 @@ bool testDiskOpMouseDown(bool mouseHeldDlown)
 {
 	int32_t tmpEntry;
 
-	if (!ui.diskOpShown || FReq_FileCount == 0)
+	if (ui.portShown || !ui.diskOpShown || FReq_FileCount == 0)
 		return false;
 
 	int32_t max = FReq_FileCount - FReq_DirPos;
@@ -1121,7 +1121,7 @@ bool testDiskOpMouseDown(bool mouseHeldDlown)
 
 void testDiskOpMouseRelease(void)
 {
-	if (ui.diskOpShown)
+	if (ui.diskOpShown || ui.portShown)
 	{
 		if (mouse.x >= 169 && mouse.x <= 329 && mouse.y >= 4 && mouse.y <= 168)
 			fileListPressed((mouse.y - 4) / (FONT1_CHAR_H + 1));
@@ -1690,6 +1690,9 @@ static void displayCurrPath(void)
 
 void diskOp_DrawFilelist(void)
 {
+	if (ui.portShown)
+		return;
+
 	clearRect(FILENAME_TEXT_X-1, 4, 162, 164);
 
 	if (FReq_FileCount == 0)
@@ -2119,6 +2122,9 @@ void exitDiskOpScreen(void)
 
 void toggleDiskOpScreen(void)
 {
+	if (ui.portShown)
+		return;
+
 	if (ui.diskOpShown)
 		exitDiskOpScreen();
 	else
