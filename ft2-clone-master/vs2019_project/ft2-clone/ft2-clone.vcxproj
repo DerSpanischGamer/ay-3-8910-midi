@@ -236,8 +236,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\ROBERTO1OOO\AppData\Local\Programs\Python\Python39\include;C:\Users\rober\AppData\Local\Programs\Python\Python37-32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>__WINDOWS_MM__;_CRTDBG_MAP_ALLOC;DEBUG;_DEBUG;WIN32;_CRT_SECURE_NO_WARNINGS;HAS_MIDI</PreprocessorDefinitions>
       <FloatingPointModel>Fast</FloatingPointModel>
       <StringPooling>
@@ -368,6 +367,7 @@
     <ClCompile Include="..\..\src\smploaders\ft2_load_iff.c" />
     <ClCompile Include="..\..\src\smploaders\ft2_load_raw.c" />
     <ClCompile Include="..\..\src\smploaders\ft2_load_wav.c" />
+    <ClCompile Include="..\..\src\serialCom.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\ft2_about.h" />
@@ -419,9 +419,13 @@
     <ClInclude Include="..\..\src\mixer\ft2_silence_mix.h" />
     <ClInclude Include="..\..\src\rtmidi\RtMidi.h" />
     <ClInclude Include="..\..\src\rtmidi\rtmidi_c.h" />
+    <ClInclude Include="..\..\src\serialCom.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\src\ft2-clone.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\ports.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

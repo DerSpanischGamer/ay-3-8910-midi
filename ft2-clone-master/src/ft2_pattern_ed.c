@@ -1290,6 +1290,8 @@ void stringToPattern(char* line, uint16_t* notes) {
 
 bool loadPattern(UNICHAR *filenameU)
 {
+	while (editor.editPattern > 0) { pbPosEdPattDown(); }	// Start at the first
+
 #pragma region Interesting
 	FILE *f = UNICHAR_FOPEN(filenameU, "rb");
 	if (f == NULL)
@@ -1298,14 +1300,17 @@ bool loadPattern(UNICHAR *filenameU)
 		return false;
 	}
 
-	if (!allocatePattern(0))
+	if (!allocatePattern(editor.editPattern))
 	{
 		okBox(0, "System message", "Not enough memory!");
-		goto loadPattError;
+
+		fclose(f);
+		return false;
 	}
 #pragma endregion Interesting
 
-	// TODO: LEER HEADER
+	// --- READING HEADER ---
+
 	char line[164] = { 0 };		// Save the line
 	char bpm[4] = { 0 };
 	fgets(line, 164, f);
@@ -1321,27 +1326,43 @@ bool loadPattern(UNICHAR *filenameU)
 	while (numBPM > song.speed) { pbBPMUp(); }
 
 	showDiskOpScreen();	// When calling pbBPM the BPM is redrawn, therefore we need to redraw to not bug it
-	
-	uint16_t nr = 0; // Start at the first track
-	tonTyp* pattPtr = patt[nr];
-	uint16_t pattLen = 64;	// Max size is locked at 64 (40 in HEX)
+
+	// --- DONE READING HEADER ---
+	// --- READ DATA ---
+
+	tonTyp* pattPtr = patt[editor.editPattern];
+	uint16_t pattLen = 64;	// Max size is locked at 64 (40 in HEX) (assumed constant)
 
 	lockMixerCallback();
 
 	int prevVals[28] = { -1 };	// Values from the previous line
 	uint16_t pos = 0;
-
+	
 	while (fgets(line, 164, f)) {		// Get the next line
 		uint16_t nums[29] = { 0 };		// Save the timestamp + numbers
 		stringToPattern(line, nums);	// Turn from string to numbers
 		
-		const uint16_t c = nums[0];		// Get the line
+		uint16_t c = nums[0];		// Get the line
+
+		if (c >= (editor.editPattern + 1) * pattLen) {
+			if (c > 256 * pattLen) {	// If it takes more than 256 patterns of 64 lines each, finish it
+				okBox(0, "Error on loading !", "File too large.");
+				return false;
+			}
+			pos = 0;	// We start at the beggining
+			c %= 64;	// Make c between 0 and 63 (inclusive)
+
+			pbPosEdPattUp();						// Increase pattern
+			allocatePattern(editor.editPattern);	// Allocate it some memory
+			pattPtr = patt[editor.editPattern];		// Update notes
+		}
 
 		for (pos; pos < c - 1; pos++)	// Ignore lines where there's nothing
 			pattPtr += 32;
-	
+
 		for (uint8_t i = 1; i < 29; i++, pattPtr++) {
 			if (prevVals[i - 1] != nums[i]) {
+				printf("%d\n", c);
 				pattPtr->ton = nums[i];		// Save the new value
 				pattPtr->instr = 1;			// Notify that the note has been changed
 				prevVals[i - 1] = nums[i];	// Update the old value
@@ -1350,35 +1371,6 @@ bool loadPattern(UNICHAR *filenameU)
 		pattPtr += 4;	// Adding 4 in order to compensate for the 28 from before to get to the 32 channels
 	}
 	
-	fclose(f);
-
-	// non-FT2 security fix: remove overflown (illegal) stuff
-	for (int32_t i = 0; i < pattLen; i++)
-	{
-		for (int32_t j = 0; j < MAX_VOICES; j++)
-		{
-			pattPtr = &patt[nr][(i * MAX_VOICES) + j];
-			if (pattPtr->ton > 97)
-				pattPtr->ton = 0;
-
-			if (pattPtr->effTyp > 35)
-			{
-				pattPtr->effTyp = 0;
-				pattPtr->eff = 0;
-			}
-		}
-	}
-
-	// set new pattern length (FT2 doesn't do this, strange...)
-	pattLens[nr] = pattLen;
-	song.pattLen = pattLen;
-	if (song.pattPos >= pattLen)
-	{
-		song.pattPos = pattLen-1;
-		if (!songPlaying)
-			editor.pattPos = song.pattPos;
-	}
-
 	unlockMixerCallback();
 
 	fclose(f);
@@ -1390,10 +1382,6 @@ bool loadPattern(UNICHAR *filenameU)
 	setSongModifiedFlag();
 
 	return true;
-
-loadPattError:
-	fclose(f);
-	return false;
 }
 
 bool savePattern(UNICHAR *filenameU)

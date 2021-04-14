@@ -33,7 +33,7 @@
 #include "ft2_events.h"
 #include "ft2_bmp.h"
 #include "ft2_structs.h"
-#include "ft2_edit.h" // Amadeus
+#include "serialCom.h" // Amadeus
 
 #ifdef HAS_MIDI
 static SDL_Thread *initMidiThread;
@@ -238,7 +238,11 @@ int main(int argc, char *argv[])
 
 	// ----------- NEW CODE :P --------
 	printf("===Running===");
-	AddChannelBeginning();
+
+	AddChannelBeginning();	// Make it 14 channels, one for each register
+	
+	getPorts();
+	
 	// --------------------------------
 
 	while (editor.programRunning)

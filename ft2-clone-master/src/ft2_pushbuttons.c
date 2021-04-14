@@ -30,6 +30,7 @@
 #include "ft2_sample_ed_features.h"
 #include "ft2_palette.h"
 #include "ft2_structs.h"
+#include "serialCom.h"
 
 pushButton_t pushButtons[NUM_PUSHBUTTONS] =
 {
@@ -88,7 +89,7 @@ pushButton_t pushButtons[NUM_PUSHBUTTONS] =
 	//x,   y,   w,  h,  p, d, text #1,      text #2, funcOnDown, funcOnUp
 	{ 294,   2, 59, 16, 0, 0, "About",      NULL,    NULL,       showAboutScreen },
 	{ 294,  19, 59, 16, 0, 0, "Nibbles",    NULL,    NULL,       pbNibbles },
-	{ 294,  36, 59, 16, 0, 0, "NOP",        NULL,    NULL,       NULL },
+	{ 294,  36, 59, 16, 0, 0, "NOP",		NULL,    NULL,       NULL },
 	{ 294,  53, 59, 16, 0, 0, "NOP",		NULL,    NULL,       NULL },
 	{ 294,  70, 59, 16, 0, 0, "NOP",		NULL,    NULL,       NULL },
 	{ 294,  87, 59, 16, 0, 0, "NOP",		NULL,    NULL,       NULL },
@@ -103,7 +104,7 @@ pushButton_t pushButtons[NUM_PUSHBUTTONS] =
 	{ 359,  53, 59, 16, 0, 0, "Rec. sng.",  NULL,    NULL,       pbRecSng },
 	{ 359,  70, 59, 16, 0, 0, "Rec. ptn.",  NULL,    NULL,       pbRecPtn },
 	{ 359,  87, 59, 16, 0, 0, "Disk.Op.",	NULL,    NULL,       toggleDiskOpScreen },	// Save / Load
-	{ 359, 104, 59, 16, 0, 0, "NOP",		NULL,    NULL,       NULL },
+	{ 359, 104, 59, 16, 0, 0, "Ports",		NULL,    NULL,       togglePorts },
 	{ 359, 121, 59, 16, 0, 0, "NOP",		NULL,    NULL,       NULL },
 	{ 359, 138, 59, 16, 0, 0, "Config",     NULL,    NULL,       showConfigScreen },	// TODO: Could be used to connect to the Amadeus Board
 	{ 359, 155, 59, 16, 0, 0, "Help",       NULL,    NULL,       showHelpScreen },

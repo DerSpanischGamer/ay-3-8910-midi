@@ -39,6 +39,7 @@
 #include "ft2_video.h"
 #include "ft2_inst_ed.h"
 #include "ft2_structs.h"
+#include "serialCom.h"
 
 // hide POSIX warnings for chdir()
 #ifdef _MSC_VER
@@ -1120,10 +1121,13 @@ bool testDiskOpMouseDown(bool mouseHeldDlown)
 
 void testDiskOpMouseRelease(void)
 {
-	if (ui.diskOpShown && FReq_EntrySelected != -1)
+	if (ui.diskOpShown)
 	{
 		if (mouse.x >= 169 && mouse.x <= 329 && mouse.y >= 4 && mouse.y <= 168)
 			fileListPressed((mouse.y - 4) / (FONT1_CHAR_H + 1));
+
+		if (mouse.x >= 4 && mouse.x <= 168 && mouse.y >= 4 && mouse.y <= 168)
+			portPressed((mouse.y - 4) / (FONT1_CHAR_H + 1));
 
 		FReq_EntrySelected = -1;
 		diskOp_DrawFilelist();
