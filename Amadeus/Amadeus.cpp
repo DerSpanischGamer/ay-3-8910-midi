@@ -6,6 +6,8 @@
 
 #define volumen B00001111 // valores entre B00000000 Y B00001111
 
+#define VERSION "v1.1"
+
 const int Amadeus::freqOutputPin = 11;   // OC2A output pin for ATmega328 boards
 // Constants are computed at compile time
 // If you change the prescale value, it affects CS22, CS21, and CS20
@@ -169,10 +171,10 @@ unsigned char Amadeus::GetData(void)
 void Amadeus::out(char chip, uint8_t reg, uint8_t value)
 {
   // Primero escrbir la dirección
-  setup_data(ADDRESS);    // Poner la direccion en los registros del bus
-  SetData(reg & 0x0F);    // Configurar los pines del bus para que sean output
+  setup_data(ADDRESS);    		// Poner la direccion en los registros del bus
+  SetData(reg & 0x0F);    		// Configurar los pines del bus para que sean output
   set_control(chip, ADDRESS);   // Poner los pines analogicos que controlan la funcion en modo direccion
-  delayMicroseconds(3);   // idk, tining and shit
+  delayMicroseconds(3);   		// idk, timing and shit
   set_control(chip, INACTIVE);  // Poner los pines analogicos en inactivo para que no sobreescriban el valor o algo
 
   // Después escribir el valor en la dirección que hemos elegido antes
@@ -189,6 +191,8 @@ void Amadeus::out(char chip, uint8_t reg, uint8_t value)
   PORTD = 0;                    // Borrar el registro del bus para no dejar pruebas (aunque hemos dejado pruebas en el puerto B, para hacerlo bien deberíamos hacer setup_data(0);)
   //setup_data(INACTIVE);       // A mí también me gustaría saber por qué esto está comentado :(
 }
+
+void Amadeus::versionOut() { Serial.write(VERSION); }
 
 // Leer un registro, imagino que no hace falta poner la dirección ? O eso, o me estoy perdiendo algo
 uint8_t Amadeus::read_2149_reg(uint8_t reg)

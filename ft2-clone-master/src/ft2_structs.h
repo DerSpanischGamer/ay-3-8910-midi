@@ -11,6 +11,8 @@ typedef struct cpu_t
 
 typedef struct editor_t
 {
+	bool connected;	// Are we connected to a board
+
 	UNICHAR *binaryPathU, *tmpFilenameU, *tmpInstrFilenameU; // used by saving/loading threads
 	UNICHAR *configFileLocationU, *audioDevConfigFileLocationU, *midiConfigFileLocationU;
 

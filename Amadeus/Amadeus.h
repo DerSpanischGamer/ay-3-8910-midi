@@ -6,6 +6,7 @@ class Amadeus {
 		Amadeus();			// Crear una instancia de este clase
 		void begin();		// Iniciar todo
 		void out(char chip, uint8_t reg, uint8_t value);	// Enviar una nota a uno de los dos chips
+		void versionOut();	// Devolver la version
 	private:
 		void setup_clock();
 		void setup_data(int mode);

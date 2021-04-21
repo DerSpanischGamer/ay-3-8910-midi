@@ -44,6 +44,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -368,6 +369,7 @@
     <ClCompile Include="..\..\src\smploaders\ft2_load_raw.c" />
     <ClCompile Include="..\..\src\smploaders\ft2_load_wav.c" />
     <ClCompile Include="..\..\src\serialCom.c" />
+    <ClCompile Include="amadeusCom.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\ft2_about.h" />

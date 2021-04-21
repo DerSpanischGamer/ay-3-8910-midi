@@ -118,6 +118,7 @@
       <Filter>smploaders</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\serialCom.c" />
+    <ClCompile Include="amadeusCom.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\rtmidi\RtMidi.h">

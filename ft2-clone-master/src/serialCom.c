@@ -7,11 +7,23 @@
 
 #define FILENAME_TEXT_X 170
 
+#define MAXPUERTOS 10
+
 FILE* portsFile;
 
 char numPuertos[5];     // Stores the first line which has the number of ports
 uint8_t nPuertos;       // Idem but as an int
-char puertos[10][255];  // 10 string, each with 255 characters to write the ports that CAN be accessed
+char puertos[MAXPUERTOS][255];  // 10 string, each with 255 characters to write the ports that CAN be accessed
+
+void* amadeusC = NULL;
+
+int connected = 0;  // This will hold if we are connected to a board or not
+
+// ---- FUNCTION DECLARATION
+static void drawPortNames();
+static void printRightText(const char* outText);
+
+#pragma region gettingPorts
 
 static void removeComa(char* s_in) {  // Remove coma at the end of the string
     uint8_t pos = 0;
@@ -19,8 +31,15 @@ static void removeComa(char* s_in) {  // Remove coma at the end of the string
     s_in[pos - 1] = '\0';  // Null character at where was the coma
 }
 
+static void initPuertos() {
+    for (uint8_t i = 0; i < MAXPUERTOS; i++)
+        strcpy(puertos[i], "\\\\.\\");
+}
+
 void getPorts()
 {
+    initPuertos();  // Reset them to their original state
+
     system("python ../../src/ports.py");
 
     Sleep(500); // Wait for python :>
@@ -35,22 +54,77 @@ void getPorts()
     nPuertos = atoi(numPuertos);
 
     uint8_t i = 0;
-    while (fgets(puertos[i], 255, portsFile) != NULL) { removeComa(puertos[i++]); } // Keep the lines coming
+    const char temp[255];
+    while (fgets(temp, 255, portsFile) != NULL) { strcat(puertos[i], temp); removeComa(puertos[i++]); } // Keep the lines coming
 
     fclose(portsFile);
     return;
 }
 
-void connectPort(int port) {
-    printf("Connecting to port %s", puertos[port]);
+#pragma endregion gettingPorts
+
+#pragma region connectingWritingUpdating
+
+void writeRead() {  // TODO: return a pointer to the string returned
+}
+
+void write(const char* buffer, int length)
+{
+    if (!editor.connected)
+        return;
+
+    amadeus_write(amadeusC, buffer, length);
+}
+
+void connectPort(const char* port)
+{
+    if (editor.connected)
+        closePort();
+
+    editor.connected = false;
+
+    amadeusC = initAmadeusCom();
+    if (!amadeus_connect(amadeusC, port))    // If 0 => there has been an error
+        printRightText("Error!");
+    else {
+        editor.connected = true;
+        printRightText("Connected\n");
+    }
+}
+
+void closePort() {
+    if (!editor.connected)
+        return;
+    
+    editor.connected = false;
+    amadeus_disconnect();
 }
 
 void portPressed(int position) {
     if (position > nPuertos - 1)
         return;
 
-    connectPort(position);
+    connectPort(puertos[position]);
 }
+
+
+void updatePorts(void) {
+    if (!ui.portShown)
+        return;
+
+    printRightText("Updating...");
+    getPorts();
+    
+    drawPortNames();
+    
+    char temp[16] = { 0 };
+    sprintf(temp, "Found %d port%s", nPuertos, nPuertos == 1 ? "." : "s.");
+    printRightText(temp);
+}
+
+#pragma endregion connectingWritingUpdating
+
+#pragma region GUI
 
 void hidePorts(void)
 {
@@ -69,17 +143,18 @@ static void drawPortNames() {
     }
 }
 
-void updatePorts(void) {
-    getPorts();
-    if (ui.portShown) drawPortNames();
+static void printRightText(const char* outText) {
+    clearRect(176, 4, 113, 164);    // Nothing for now (right)
+    
+    textOut(176, 4, PAL_BLCKTXT, outText);
 }
 
-void drawPortsScreen() {
+static void drawPortsScreen() {
     // Draw the background
     drawFramework(0, 0, 172, 172, FRAMEWORK_TYPE1);     // Left
     drawFramework(172, 0, 121, 172, FRAMEWORK_TYPE1);   // Right
     
-    clearRect(176, 4, 113, 164);    // Nothing for now (right)
+    printRightText(""); // Send empty string to just clear the right side
 
     drawPortNames();
 }
@@ -101,3 +176,5 @@ void togglePorts(void) {
     else
         showPorts();
 }
+
+#pragma endregion GUI
