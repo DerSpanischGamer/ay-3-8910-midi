@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
 		saveConfig(CONFIG_HIDE_ERRORS);
 
 	cleanUpAndExit();
-	closePort();	// Close the port
+	closeSerialPort();
 	return 0;
 }
 

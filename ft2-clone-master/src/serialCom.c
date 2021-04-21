@@ -15,13 +15,12 @@ char numPuertos[5];     // Stores the first line which has the number of ports
 uint8_t nPuertos;       // Idem but as an int
 char puertos[MAXPUERTOS][255];  // 10 string, each with 255 characters to write the ports that CAN be accessed
 
-void* amadeusC = NULL;
-
 int connected = 0;  // This will hold if we are connected to a board or not
 
 // ---- FUNCTION DECLARATION
 static void drawPortNames();
 static void printRightText(const char* outText);
+void closePort();
 
 #pragma region gettingPorts
 
@@ -73,26 +72,24 @@ void write(const char* buffer, int length)
     if (!editor.connected)
         return;
 
-    amadeus_write(amadeusC, buffer, length);
+    amadeus_write(buffer, length);
 }
 
 void connectPort(const char* port)
 {
-    if (editor.connected)
-        closePort();
-
     editor.connected = false;
 
-    amadeusC = initAmadeusCom();
-    if (!amadeus_connect(amadeusC, port))    // If 0 => there has been an error
+    initAmadeusCom();
+
+    if (!amadeus_connect(port))    // If 0 => there has been an error
         printRightText("Error!");
     else {
         editor.connected = true;
-        printRightText("Connected\n");
+        printRightText("Connected");
     }
 }
 
-void closePort() {
+void closeSerialPort() {
     if (!editor.connected)
         return;
     

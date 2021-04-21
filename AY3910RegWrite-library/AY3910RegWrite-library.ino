@@ -27,8 +27,6 @@ void setup() {
 
 void loop() {
   while (Serial.readBytes(regs, 3) != 3); // Primer byte es el chip, segundo byte es el registro y el tercero es el valor
-  if (regs[0] < 2)
-    amadeus.out(regs[0], regs[1], regs[2]); // Escribir en el chip regs[0], en el registro regs[1] el valor [2]
-  else
-    amadeus.versionOut();
+  for (int i = 0; i < 3; i++)
+    Serial.write(regs[i] + 1);
 }

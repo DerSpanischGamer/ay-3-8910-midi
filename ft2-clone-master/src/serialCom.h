@@ -3,7 +3,7 @@
 char* puertos;
 uint8_t nPuertos;
 
-void closePort();
+void closeSerialPort();
 
 void getPorts();
 
