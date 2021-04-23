@@ -101,12 +101,12 @@ pushButton_t pushButtons[NUM_PUSHBUTTONS] =
 	{ 359,   2, 59, 16, 0, 0, "Play sng.",  NULL,    NULL,       pbPlaySong },
 	{ 359,  19, 59, 16, 0, 0, "Play ptn.",  NULL,    NULL,       pbPlayPtn },
 	{ 359,  36, 59, 16, 0, 0, "Stop",       NULL,    NULL,       stopPlaying },
-	{ 359,  53, 59, 16, 0, 0, "Rec. sng.",  NULL,    NULL,       pbRecSng },
-	{ 359,  70, 59, 16, 0, 0, "Rec. ptn.",  NULL,    NULL,       pbRecPtn },
+	{ 359,  53, 59, 16, 0, 0, "NOP",		NULL,    NULL,       NULL},
+	{ 359,  70, 59, 16, 0, 0, "NOP",		NULL,    NULL,       NULL },
 	{ 359,  87, 59, 16, 0, 0, "Disk.Op.",	NULL,    NULL,       toggleDiskOpScreen },	// Save / Load
 	{ 359, 104, 59, 16, 0, 0, "Ports",		NULL,    NULL,       togglePorts },
 	{ 359, 121, 59, 16, 0, 0, "Update",		NULL,    NULL,       updatePorts },
-	{ 359, 138, 59, 16, 0, 0, "Config",     NULL,    NULL,       showConfigScreen },	// TODO: Could be used to connect to the Amadeus Board
+	{ 359, 138, 59, 16, 0, 0, "NOP",		NULL,    NULL,       NULL },
 	{ 359, 155, 59, 16, 0, 0, "Help",       NULL,    NULL,       showHelpScreen },
 	{ 115,  35, 46, 16, 0, 0, "Exit",       NULL,    NULL,       exitPatternEditorExtended },
 

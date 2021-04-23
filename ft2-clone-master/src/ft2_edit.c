@@ -402,19 +402,18 @@ void recordNote(uint8_t note, int8_t vol, bool changeNote)
 
 				uint16_t preNote = note * power(10, 2 - editor.nextMove);	// Need more space than 8 bits in case he introduces a number bigger than 255
 				
-				if (noteData->ton + preNote > 256)	// If we are going to overflow
+				if (noteData->ton + preNote >= 256)	// If we are going to overflow
 				{
 					switch (editor.nextMove) {	// Make it not
 					case 0: noteData->ton = 200; break;
 					case 1: noteData->ton = 250; break;
+					default:
 					case 2: noteData->ton = 255; break;
-					default: break;
 					}
 				}
 				else // If we ok
 					noteData->ton += (uint8_t) preNote;	// Insert data the good ol way
 
-				
 				noteData->instr = 1;	// Always Amadeus card
 				
 				editor.nextMove++;	// We've added a letter !

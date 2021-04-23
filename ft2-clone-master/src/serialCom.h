@@ -11,7 +11,8 @@ void togglePorts(void);
 void hidePorts();
 void showPorts();
 
-void write(const char* buffer);
+void writeRead(const char* dataOut, int outL, char* dataIn, int inL);
+void write(const char* buffer, int length);
 
 void updatePorts(void);
 

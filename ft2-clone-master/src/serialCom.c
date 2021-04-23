@@ -64,7 +64,11 @@ void getPorts()
 
 #pragma region connectingWritingUpdating
 
-void writeRead() {  // TODO: return a pointer to the string returned
+void writeRead(const char* dataOut, int outL, char* dataIn, int inL) {
+    if (!editor.connected)
+        return;
+
+    amadeus_writeRead(dataOut, outL, dataIn, inL);
 }
 
 void write(const char* buffer, int length)

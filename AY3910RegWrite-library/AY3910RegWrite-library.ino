@@ -1,28 +1,11 @@
-#include "Amadeus.h"
-
-// ----------- Constantes -----------
-
-// Valores de cada chip
-#define PRIMERO 0
-#define SEGUNDO 1
-
-#define volumen B00001111 // valores entre B00000000 Y B00001111
-
-// Registros
-#define REG_LVL_A 8
-#define REG_LVL_A 9
-#define REG_LVL_A 10
-
 // ----------- Variables -----------
 
 char regs[3];
 
-Amadeus amadeus = Amadeus(); // Iniciar la clase Amadeus
-
 // ----------- Funciones -----------
 
 void setup() {
-  amadeus.begin();
+  Serial.begin(115200);
 }
 
 void loop() {

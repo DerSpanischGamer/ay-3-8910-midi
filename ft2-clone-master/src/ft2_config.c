@@ -178,7 +178,7 @@ static void loadConfigFromBuffer(void)
 	setMouseShape(config.mouseType);
 	changeLogoType(config.id_FastLogo);
 	changeBadgeType(config.id_TritonProd);
-	ui.maxVisibleChannels = (uint8_t)(2 + ((config.ptnMaxChannels + 1) * 2));
+	ui.maxVisibleChannels = 14;   // (uint8_t)(2 + ((config.ptnMaxChannels + 1) * 2))
 	setPal16(palTable[config.cfg_StdPalNr], true);
 	updatePattFontPtrs();
 

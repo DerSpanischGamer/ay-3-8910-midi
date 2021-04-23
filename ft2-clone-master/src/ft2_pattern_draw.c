@@ -63,13 +63,7 @@ void drawPatternBorders(void)
 	if (chans > ui.maxVisibleChannels)
 		chans = ui.maxVisibleChannels;
 
-	// in some configurations, there will be two empty channels to the right, fix that
-	if (chans == 2)
-		chans = 4;
-	else if (chans == 10 && !config.ptnS3M)
-		chans = 12;
-
-	assert(chans >= 2 && chans <= 12);
+	assert(chans >= 2 && chans <= 14);
 
 	const uint16_t chanWidth = chanWidths[(chans >> 1) - 1] + 2;
 
@@ -180,7 +174,7 @@ static void writeCursor(void)
 	const int32_t tabOffset = (config.ptnS3M * 32) + (columnModeTab[ui.numChannelsShown-1] * 8) + cursor.object;
 
 	int32_t xPos = pattCursorXTab[tabOffset];
-	const int32_t width = pattCursorWTab[tabOffset];
+	const int32_t width = 23; // before pattCursorWTab[tabOffset]
 
 	assert(editor.ptnCursorY > 0 && xPos > 0 && width > 0);
 	xPos += ((cursor.ch - ui.channelOffset) * ui.patternChannelWidth);
@@ -500,7 +494,7 @@ static void showNoteNumNoVolColumn(uint32_t xPos, uint32_t yPos, int16_t ton, ui
 {
 	xPos += 3;
 
-	assert(ton >= 0 && ton <= 97);
+	assert(ton >= 0 && ton <= 256);
 
 	if (ui.numChannelsShown <= 6)
 	{
@@ -634,19 +628,20 @@ void writePattern(int32_t currRow, int32_t pattern)
 	** time than needed (overlapped drawing), but it makes the pattern
 	** mark/cursor drawing MUCH simpler to implement...
 	*/
+
+	uint32_t chans = ui.numChannelsShown;
+	if (chans > 14)
+		chans = 14;
+
 	drawPatternBorders();
 
 	// setup variables
 
-	uint32_t chans = ui.numChannelsShown;
-	if (chans > ui.maxVisibleChannels)
-		chans = ui.maxVisibleChannels;
-
-	assert(chans >= 2 && chans <= 12);
-
+	assert(chans >= 2 && chans <= 28);
+	
 	// get channel width
 	const uint32_t chanWidth = chanWidths[(chans / 2) - 1];
-	ui.patternChannelWidth = (uint16_t)(chanWidth + 3);
+	ui.patternChannelWidth = (uint16_t) (chanWidth + 3); // before (uint16_t) (chanWidth + 3);
 
 	// get heights/pos/rows depending on configuration
 	uint32_t rowHeight = config.ptnUnpressed ? 11 : 8;
@@ -661,27 +656,11 @@ void writePattern(int32_t currRow, int32_t pattern)
 	tonTyp *pattPtr = patt[pattern];
 	const int32_t numRows = pattLens[pattern];
 
-
-
 	// increment pattern data pointer by horizontal scrollbar offset/channel
 	if (pattPtr != NULL)
 		pattPtr += ui.channelOffset;
 
-	// set up function pointers for drawing
-	if (config.ptnS3M)
-	{
-		drawNote = showNoteNum;
-		drawInst = showInstrNum;
-		drawVolEfx = showVolEfx;
-		drawEfx = showEfx;
-	}
-	else
-	{
-		drawNote = showNoteNumNoVolColumn;
-		drawInst = showInstrNumNoVolColumn;
-		drawVolEfx = showNoVolEfx;
-		drawEfx = showEfxNoVolColumn;
-	}
+	drawNote = showNoteNum;		// For amadeus the board we access all the registers, therefore we can save space by not showing the rest of the info
 
 	noteTextColors[0] = video.palette[PAL_PATTEXT]; // not selected
 	noteTextColors[1] = video.palette[PAL_FORGRND]; // selected
@@ -703,9 +682,6 @@ void writePattern(int32_t currRow, int32_t pattern)
 			for (int32_t j = 0; j < numChannels; j++, note++)
 			{
 				drawNote(xPos, textY, note->ton, note->instr, color);	// Calls the drawing note function
-				drawInst(xPos, textY, note->instr, color);
-				drawVolEfx(xPos, textY, note->vol, color);
-				drawEfx(xPos, textY, note->effTyp, note->eff, color);
 
 				xPos += xWidth;
 			}

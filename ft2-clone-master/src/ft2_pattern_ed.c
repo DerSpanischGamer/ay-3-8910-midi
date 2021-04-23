@@ -109,7 +109,7 @@ void updatePatternWidth(void)
 	if (ui.numChannelsShown > ui.maxVisibleChannels)
 		ui.numChannelsShown = ui.maxVisibleChannels;
 
-	assert(ui.numChannelsShown >= 2 && ui.numChannelsShown <= 12);
+	assert(ui.numChannelsShown >= 2 && ui.numChannelsShown <= 14);
 
 	ui.patternChannelWidth = chanWidths[(ui.numChannelsShown / 2) - 1] + 3;
 }
@@ -1925,7 +1925,7 @@ void pbAddChan(void)
 void AddChannelBeginning(void)	// We start with 8 but we need 14
 {
 	lockMixerCallback();
-	song.antChn += 6;
+	song.antChn = 14;	// Directly change to prevent adding more channels than needed
 
 	hideTopScreen();
 	showTopLeftMainScreen(true);

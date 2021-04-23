@@ -21,6 +21,7 @@
 #include "ft2_tables.h"
 #include "ft2_structs.h"
 #include "mixer/ft2_windowed_sinc.h"
+#include "serialCom.h"	// Amadeus
 
 /* This is a mess, directly ported from the original FT2 code (with some modifications).
 ** You will experience a lot of headaches if you dig into it...
@@ -2277,7 +2278,10 @@ void tickReplayer(void) // periodically called from audio callback
 		c = stm;
 		for (i = 0; i < song.antChn; i++, c++, pattPtr++)	// song.antChn number of channels
 		{
-			//printf("%d \n", c->tonNr);	// tonNr ""holds"" the last value if no change has been made, while tonTyp shows the current note
+			if (pattPtr->instr) {	 // If instrument is set it means the user has inputed a note (even if it is 0)
+				const unsigned char buffer[3] = { i / 14, i % 14, pattPtr->ton };	// Prepare the bytes that will be sent { chip, register, note }
+				write(buffer, 3);													// Send command
+			}
 
 			// Code below useless as will be using Amadeus board as instrument?
 			getNewNote(c, pattPtr);
@@ -2667,7 +2671,7 @@ void updateChanNums(void)
 {
 	assert(!(song.antChn & 1));
 
-	const int32_t maxChannelsShown = getMaxVisibleChannels();
+	const int32_t maxChannelsShown = 14;	// before   getMaxVisibleChannels()
 
 	int32_t channelsShown = song.antChn;
 	if (channelsShown > maxChannelsShown)
@@ -2801,7 +2805,7 @@ bool setupReplayer(void)
 	resetChannels();
 
 	song.len = 1;
-	song.antChn = 8;
+	song.antChn = 14;
 	editor.speed = song.speed = 125;
 	editor.tempo = song.tempo = 6;
 	editor.globalVol = song.globVol = 64;
@@ -2877,6 +2881,11 @@ void startPlaying(int8_t mode, int16_t row)
 
 void stopPlaying(void)
 {
+	for (int i = 0; i < song.antChn; i++) {
+		const unsigned char buffer[3] = { i / 14, i % 14, 0 };	// 0 to all registers
+		write(buffer, 3);
+	}
+
 	bool songWasPlaying = songPlaying;
 	playMode = PLAYMODE_IDLE;
 	songPlaying = false;
