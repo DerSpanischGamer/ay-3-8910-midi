@@ -1140,133 +1140,6 @@ void keybPattMarkRight(void)
 	chanRight();
 }
 
-bool loadTrack(UNICHAR *filenameU)
-{
-	tonTyp loadBuff[MAX_PATT_LEN];
-	trackHeaderType th;
-
-	FILE *f = UNICHAR_FOPEN(filenameU, "rb");
-	if (f == NULL)
-	{
-		okBox(0, "System message", "General I/O error during loading! Is the file in use?");
-		return false;
-	}
-
-	uint16_t nr = editor.editPattern;
-	int16_t pattLen = pattLens[nr];
-
-	if (fread(&th, 1, sizeof (th), f) != sizeof (th))
-	{
-		okBox(0, "System message", "General I/O error during loading! Is the file in use?");
-		goto trackLoadError;
-	}
-
-	if (th.ver != 1)
-	{
-		okBox(0, "System message", "Incompatible format version!");
-		goto trackLoadError;
-	}
-
-	if (th.len > MAX_PATT_LEN)
-		th.len = MAX_PATT_LEN;
-
-	if (pattLen > th.len)
-		pattLen = th.len;
-
-	if (fread(loadBuff, pattLen * sizeof (tonTyp), 1, f) != 1)
-	{
-		okBox(0, "System message", "General I/O error during loading! Is the file in use?");
-		goto trackLoadError;
-	}
-
-	if (!allocatePattern(nr))
-	{
-		okBox(0, "System message", "Not enough memory!");
-		goto trackLoadError;
-	}
-
-	tonTyp *pattPtr = patt[nr];
-
-	lockMixerCallback();
-	for (int32_t i = 0; i < pattLen; i++)
-	{
-		pattPtr = &patt[nr][(i * MAX_VOICES) + cursor.ch];
-		*pattPtr = loadBuff[i];
-
-		// non-FT2 security fix: remove overflown (illegal) stuff
-		if (pattPtr->ton > 97)
-			pattPtr->ton = 0;
-
-		if (pattPtr->effTyp > 35)
-		{
-			pattPtr->effTyp = 0;
-			pattPtr->eff = 0;
-		}
-	}
-	unlockMixerCallback();
-
-	fclose(f);
-
-	ui.updatePatternEditor = true;
-	ui.updatePosSections = true;
-
-	diskOpSetFilename(DISKOP_ITEM_TRACK, filenameU);
-	setSongModifiedFlag();
-
-	return true;
-
-trackLoadError:
-	fclose(f);
-	return false;
-}
-
-bool saveTrack(UNICHAR *filenameU)
-{
-	tonTyp saveBuff[MAX_PATT_LEN];
-	trackHeaderType th;
-
-	uint16_t nr = editor.editPattern;
-	tonTyp *pattPtr = patt[nr];
-
-	if (pattPtr == NULL)
-	{
-		okBox(0, "System message", "The current pattern is empty!");
-		return false;
-	}
-
-	FILE *f = UNICHAR_FOPEN(filenameU, "wb");
-	if (f == NULL)
-	{
-		okBox(0, "System message", "General I/O error during saving! Is the file in use?");
-		return false;
-	}
-
-	const int16_t pattLen = pattLens[nr];
-	cursor.ch = 0;
-	for (int32_t i = 0; i < pattLen; i++)
-		saveBuff[i] = pattPtr[(i * MAX_VOICES) + cursor.ch];
-
-	th.len = pattLen;
-	th.ver = 1;
-
-	if (fwrite(&th, sizeof (th), 1, f) !=  1)
-	{
-		fclose(f);
-		okBox(0, "System message", "General I/O error during saving! Is the file in use?");
-		return false;
-	}
-
-	if (fwrite(saveBuff, pattLen * sizeof (tonTyp), 1, f) != 1)
-	{
-		fclose(f);
-		okBox(0, "System message", "General I/O error during saving! Is the file in use?");
-		return false;
-	}
-
-	fclose(f);
-	return true;
-}
-
 // Takes a string and converts it into a array of uint8_t notes
 void stringToPattern(char* line, uint16_t* notes) {
 	
@@ -1288,6 +1161,106 @@ void stringToPattern(char* line, uint16_t* notes) {
 		notes[posN] += atoi(temp);
 		posL++;
 	}
+}
+
+bool loadTrack(UNICHAR* filenameU)
+{
+#pragma region Interesting
+	FILE* f = UNICHAR_FOPEN(filenameU, "rb");
+	if (f == NULL)
+	{
+		okBox(0, "System message", "General I/O error during loading! Is the file in use?");
+		return false;
+	}
+
+	if (!allocatePattern(editor.editPattern))
+	{
+		okBox(0, "System message", "Not enough memory!");
+
+		fclose(f);
+		return false;
+	}
+#pragma endregion Interesting
+
+	// --- READING HEADER ---
+
+	char line[164] = { 0 };		// Save the line
+	char bpm[4] = { 0 };
+	fgets(line, 164, f);
+
+	char* secondC = strrchr(line, ',');
+
+	memcpy(bpm, &line[6], secondC - line - 6);
+	bpm[secondC - line - 6] = '\0';
+
+	uint8_t numBPM = atoi(bpm);
+
+	while (numBPM < song.speed) { pbBPMDown(); }
+	while (numBPM > song.speed) { pbBPMUp(); }
+
+	showDiskOpScreen();	// When calling pbBPM the BPM is redrawn, therefore we need to redraw to not bug it
+
+	// --- DONE READING HEADER ---
+	// --- READ DATA ---
+
+	tonTyp* pattPtr = patt[editor.editPattern];
+	uint16_t pattLen = 64;	// Max size is locked at 64 (40 in HEX) (constant)
+
+	lockMixerCallback();
+
+	int prevVals[28] = { -1 };		// Values from the previous line
+	uint16_t pos = 0;
+
+	while (fgets(line, 164, f)) {		// Get the next line
+		uint16_t nums[29] = { 0 };		// Save the timestamp + numbers
+		stringToPattern(line, nums);	// Turn from string to numbers
+
+		uint16_t c = nums[0];			// Get the line
+
+		if (c >= (editor.editPattern + 1) * pattLen) {
+			if (c > 256 * pattLen) {	// If it takes more than 256 patterns of 64 lines each, finish it
+				okBox(0, "Error on loading !", "File too large.");
+				fclose(f);
+				return false;
+			}
+			pos = 0;	// We start at the beggining
+			c %= 64;	// Make c between 0 and 63 (inclusive)
+
+			pbPosEdPattUp();						// Increase pattern
+			
+			if (!allocatePattern(editor.editPattern)) {		// Allocate it some memory
+				okBox(0, "Couldn't allocate memory to the pattern.", "");
+				fclose(f);
+				return f;
+			}
+			pattPtr = patt[editor.editPattern];		// Update notes
+		}
+
+		for (pos; pos < c - 1; pos++)	// Ignore lines where there's nothing
+			pattPtr += 32;
+
+		for (uint8_t i = 1; i < 29; i++, pattPtr++) {
+			if (prevVals[i - 1] != nums[i]) {
+				printf("%d\n", c);
+				pattPtr->ton = nums[i];		// Save the new value
+				pattPtr->instr = 1;			// Notify that the note has been changed
+				prevVals[i - 1] = nums[i];	// Update the old value
+			}
+		}
+		pattPtr += 4;	// Adding 4 in order to compensate for the 28 from before to get to the 32 channels
+	}
+
+	unlockMixerCallback();
+
+	fclose(f);
+
+	ui.updatePatternEditor = true;
+	ui.updatePosSections = true;
+
+	diskOpSetFilename(DISKOP_ITEM_PATTERN, filenameU);
+	setSongModifiedFlag();
+
+	return true;
 }
 
 bool loadPattern(UNICHAR *filenameU)
@@ -1349,13 +1322,18 @@ bool loadPattern(UNICHAR *filenameU)
 		if (c >= (editor.editPattern + 1) * pattLen) {
 			if (c > 256 * pattLen) {	// If it takes more than 256 patterns of 64 lines each, finish it
 				okBox(0, "Error on loading !", "File too large.");
+				fclose(f);
 				return false;
 			}
 			pos = 0;	// We start at the beggining
 			c %= 64;	// Make c between 0 and 63 (inclusive)
 
 			pbPosEdPattUp();						// Increase pattern
-			allocatePattern(editor.editPattern);	// Allocate it some memory
+			if (!allocatePattern(editor.editPattern)) {		// Allocate it some memory
+				okBox(0, "Couldn't allocate memory for the song.", "");
+				fclose(f);
+				return false;
+			}
 			pattPtr = patt[editor.editPattern];		// Update notes
 		}
 
@@ -1386,6 +1364,101 @@ bool loadPattern(UNICHAR *filenameU)
 	return true;
 }
 
+bool saveTrack(UNICHAR* filenameU)
+{
+	uint16_t nr = editor.editPattern;
+	tonTyp* pattPtr = patt[nr];
+
+	if (pattPtr == NULL)
+	{
+		okBox(0, "System message", "The current pattern is empty!");
+		return false;
+	}
+
+	FILE* f = UNICHAR_FOPEN(filenameU, "wb");
+	if (f == NULL)
+	{
+		okBox(0, "System message", "General I/O error during saving! Is the file in use?");
+		return false;
+	}
+
+	uint16_t pattLen = pattLens[nr];
+
+	/* ----- .amds (Amadeus) FORMAT
+	* INFOS,BPM,#CHIPS
+	* timeStamp,...reg data...
+	* timeStamp,...reg data...
+	* ...
+	*/
+
+	// --- Preparing the header
+	char amdsHeader[10 + 1 + 1 + 1] = { 'I', 'N', 'F', 'O', 'S', ',', '\0' };	// 10 base for INFOS and comas, 1 for the number of chips, 1 for the new line, and 1 for the final \0
+	char num[3 + 1];
+
+	itoa(song.speed, num, 10);	// Save the tempo as a string
+
+	strcat(amdsHeader, num);
+
+	amdsHeader[9] = ',';
+	amdsHeader[10] = '2';
+	amdsHeader[11] = '\n';
+	amdsHeader[12] = 0;
+
+	// --- Done with preparing the header
+
+	// Save the header data
+	if (fwrite(amdsHeader, sizeof(char), strlen(amdsHeader), f) != strlen(amdsHeader))
+	{
+		fclose(f);
+		okBox(0, "System message", "General I/O error during saving of header! Is the file in use?");
+		return false;
+	}
+
+	uint8_t prevVals[28] = { 0 };
+	bool needsChange;
+
+	printf("%d", pattLen);
+
+	for (int c = 0; c < pattLen; c++) {	// For each line
+
+		char curLine[264];	// Start a new line string 
+
+		itoa(pattLen + c, curLine, 10);	// Add time stamp
+
+		needsChange = false;
+		for (int i = 0; i < song.antChn; i++, pattPtr++) {	// Get each note
+			// Test if diff value, if it is, indicate that we need to write this line
+			if (pattPtr->instr && prevVals[i] != pattPtr->ton)
+			{
+				needsChange = true;
+				prevVals[i] = pattPtr->ton;	// Update value
+			}
+
+			char nums[4];
+			strcat(curLine, ",");
+			itoa(prevVals[i], nums, 10);
+			strcat(curLine, nums);
+		}
+
+		// As the maximum number of channels is 32 and the memory is already alocated, we have to compensate
+		pattPtr += (32 - song.antChn);
+
+		strcat(curLine, "\n");
+
+#pragma region WriteAndCheck
+		if (needsChange && fwrite(curLine, sizeof(char), strlen(curLine), f) != strlen(curLine))
+		{
+			fclose(f);
+			okBox(0, "System message", "General I/O error during saving of data! Is the file in use?");
+			return false;
+		}
+#pragma endregion WriteAndCheck
+	}
+
+	fclose(f);
+	return true;
+}
+
 bool savePattern(UNICHAR *filenameU)
 {
 	uint16_t nr = editor.editPattern;
@@ -1410,10 +1483,6 @@ bool savePattern(UNICHAR *filenameU)
 	/* ----- .amds (Amadeus) FORMAT
 	* INFOS,BPM,#CHIPS
 	* timeStamp,...reg data...
-	* timeStamp,...reg data...
-	* ...
-	* timeStamp,...reg data...
-	* SEGUNDO
 	* timeStamp,...reg data...
 	* timeStamp,...reg data...
 	* timeStamp,...reg data...
@@ -1447,7 +1516,6 @@ bool savePattern(UNICHAR *filenameU)
 
 	while (song.pattNr > 0) { pbPosEdPattDown(); }	// Go to first tab
 	
-	// TODO: modify all in order to make it ALWAYS save the first state
 	uint8_t prevVals[28] = { 0 };
 	bool needsChange;
 

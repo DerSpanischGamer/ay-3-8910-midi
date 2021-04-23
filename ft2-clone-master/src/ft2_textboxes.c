@@ -801,7 +801,6 @@ void setTextCursorToEnd(textBox_t *t)
 
 void handleTextEditControl(SDL_Keycode keycode)
 {
-	printf("textboxes.c => handleTextEditControl");
 	int16_t i;
 	uint16_t numChars;
 	int32_t textLength;

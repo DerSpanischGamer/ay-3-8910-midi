@@ -752,7 +752,7 @@ static void openFile(UNICHAR *filenameU, bool songModifiedCheck)
 		break;
 
 		case DISKOP_ITEM_TRACK:
-			loadPattern(filenameU);
+			loadTrack(filenameU);
 		break;
 	}
 }
@@ -903,7 +903,7 @@ static void diskOpSave(bool checkOverwrite)
 				return;
 			}
 
-			editor.diskOpReadDir = savePattern(fileNameU);
+			editor.diskOpReadDir = saveTrack(fileNameU);
 			free(fileNameU);
 		}
 		break;

@@ -329,7 +329,6 @@ static void changeCursorIfOverTextBoxes(void)
 
 void setMouseMode(uint8_t mode)
 {
-	printf("mouse.c => setMouseMode");
 	switch (mode)
 	{
 		case MOUSE_MODE_NORMAL: { mouse.mode = mode; mouseModeGfxOffs = 0 * (MOUSE_CURSOR_W * MOUSE_CURSOR_H); } break;
@@ -624,6 +623,8 @@ void mouseButtonUpHandler(uint8_t mouseButton)
 
 void mouseButtonDownHandler(uint8_t mouseButton)
 {
+	editor.nextMove = 0;	// If the user has pressed a button, then we reset the number of position
+
 	// if already holding left button and clicking right, don't do mouse down handling
 	if (mouseButton == SDL_BUTTON_RIGHT && mouse.leftButtonPressed)
 	{
