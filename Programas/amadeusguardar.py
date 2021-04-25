@@ -5,6 +5,7 @@
 import sys
 import csv
 import numpy as np
+import copy
 
 # ------------ CONSTANTES ------------
 
@@ -65,7 +66,7 @@ def getCanalNoDispo(nota):
 def anadirNota(tiempo, nota):
 	global ultimavez, volumen
 	
-	if (tiempo - ultimavez < 0): return # Sanity check
+	if (tiempo - ultimavez < 0): return     # Sanity check
 	
 	posicion = getCanalDisponible()	# Coger el primer canal que este disponible
 	if (posicion == -1): return		# Si no hay disponibles, i.e. la funcion devuelve -1, no hay nada que hacer, entonces no se guarda la nota
@@ -160,6 +161,56 @@ if (preguntar): # Preguntar si quiere continuar
 else:
 	input("Canción lista, dale a Enter para guardar. \n")
 
+# TODO: Hacer aqui que las notas se pongan juntas
+a = 0;
+b = 0;
+
+finalNotas = []
+finalNotas.append([0] * 29) # Estado inicial de todos los registros
+
+
+# LO QUE HAY DEBAJO ES FEO DE COJONES PERO FUNCIONA, TOOD: ARREGLAR EL TIMESTAMP PARA QUE PUEDA SER LEIDO POR EL OTRO PROGRAMA
+
+
+while a < len(notas[0]) and b < len(notas[1]):          # Mientras no hayamos pasado todas las notas al array finalNotas
+    if a == len(notas[0]):                              # El array notas[0] ya ha sido copiado por completo, faltan las notas del array notas[1]
+        if finalNotas[-1][0] != notas[1][b][0]:         # Si el timestamp de la nota es diferente
+            temp = copy.deepcopy(finalNotas[-1])                       # Copiar el estado anterior (para solo cambiar los registros que son diferentes)
+            temp[0] = notas[1][b][0]                    # Actualizar el timestamp
+            finalNotas.append(temp)
+            
+        for i in range(15, 29):                         # Como estamos en el segundo chip, tenemos que cambiar los ultimos registros
+            finalNotas[-1][i] = notas[1][b][i - 14]          # Copiar los registros
+        b += 1
+    elif b == len(notas[1]):
+        if finalNotas[-1][0] != notas[0][a][0]:
+            temp = copy.deepcopy(finalNotas[-1])
+            temp[0] = notas[0][a][0]
+            finalNotas.append(temp)
+            
+        for i in range(1, 15):
+            finalNotas[-1][i] = notas[0][a][i]
+        a += 1
+    else:                                                   # En este caso significa que aun quedan notas por copiar de los dos arrays (notas[0] y notas[1])
+        if notas[0][a][0] <= notas[0][b][0]:                    # Si el array notas[0] pasa antes
+            if finalNotas[-1][0] != notas[0][a][0]:             # Si el timestamp es diferente
+                temp  = copy.deepcopy(finalNotas[-1])                          # Primero copiar el ultimo estado
+                temp[0] = notas[0][a][0]              # Actualizar el timestamp
+                finalNotas.append(temp)
+            
+            for i in range(1, 15):
+                finalNotas[-1][i] = notas[0][a][i]
+            a += 1
+        elif notas[0][a][0] > notas[0][b][0]:
+            if finalNotas[-1][0] != notas[1][b][0]:
+                temp = copy.deepcopy(finalNotas[-1])
+                temp[0] = notas[0][a][0]
+                finalNotas.append(temp)
+            
+            for i in range(15, 29):
+                finalNotas[-1][i] = notas[1][b][i - 14]
+            b += 1
+
 # Guardar array
 with open(salida + ".amds", mode = 'w', newline = '') as output:
 	writer = csv.writer(output, delimiter = ',', quotechar = "'", quoting = csv.QUOTE_MINIMAL)
@@ -167,14 +218,8 @@ with open(salida + ".amds", mode = 'w', newline = '') as output:
 	# Escribir información sobre la canción que hemos guardado
 	writer.writerow(["INFOS", int(round((60 * 1000000) / ogTime, 0)) , 2]) 	# El primer valor guarda primero el string INFO para que de error si se intenta parsear, el segundo valor es el tempo en BPM, el tercer valor indica el número de chips
 	
-	# Escribir toda la información de lo que hace el primer chip
-	for nota in notas[0]:
+	# Escribir toda la información de lo que hacen los dos chips
+	for nota in finalNotas:
 		writer.writerow(nota)
-	
-	# Indicar que empieza el segundo chip
-	writer.writerow(["SEGUNDO CHIP"])		# El primer valor guarda un string para que de error si se intenta parsear. TODO: a lo mejor hacer que sea un 2 pero como numero, no escrito, para poder hacer que, en teoria, se puedan soportar infinitos chips simultaneos
-
-	# Escribir toda la información de lo que hace el segundo chip
-	for nota in notas[1]:
-		writer.writerow(nota)
+        
 print("Fin")
