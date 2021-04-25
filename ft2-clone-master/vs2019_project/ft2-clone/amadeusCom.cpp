@@ -1,4 +1,4 @@
-#include <cstring>
+#include <string>
 #include <Windows.h>
 #include <iostream>
 
@@ -8,6 +8,26 @@ private:
 	DWORD byteswritten;
 	HANDLE hPort;
 public:
+	int searchPorts(uint8_t* puertos) //added function to find the present serial 
+	{
+		char lpTargetPath[5000]; // buffer to store the path of the COMPORTS
+		bool gotPort = false; // in case the port is not found
+
+		int pos = 0;
+
+		for (int i = 0; i <= 10; i++) // checking ports from COM0 to COM255
+		{
+			std::string str = "COM" + std::to_string(i); // converting to COM0, COM1, COM2
+			DWORD test = QueryDosDevice(str.c_str(), lpTargetPath, 5000);
+
+			// Test the return value and error if any
+			if (test != 0)		 //QueryDosDevice returns zero if it didn't find an object
+				puertos[pos++] = i;
+		}
+
+		return pos;
+	}
+
 	int connect(const char* port) {
 		hPort = CreateFile(port, GENERIC_WRITE | GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
 		if (!GetCommState(hPort, &dcb))
@@ -36,11 +56,15 @@ public:
 	void disconnect() { CloseHandle(hPort); }
 };
 
-amadeusCom* amad;
+amadeusCom* amad = NULL;	// Stores the instance of 
 
-extern "C" int initAmadeusCom() {
-	amad = new amadeusCom();
-	return 1;
+extern "C" void initAmadeusCom() {
+	if (amad == NULL)
+		amad = new amadeusCom();
+}
+
+extern "C" int amadeus_showPorts(uint8_t* puertos) {
+	return amad->searchPorts(puertos);
 }
 
 extern "C" int amadeus_connect(const char* port) {

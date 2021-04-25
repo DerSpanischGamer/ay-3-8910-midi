@@ -295,7 +295,4 @@
   <ItemGroup>
     <ResourceCompile Include="..\..\src\ft2-clone.rc" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\src\ports.py" />
-  </ItemGroup>
 </Project>

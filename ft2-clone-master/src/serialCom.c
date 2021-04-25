@@ -11,11 +11,8 @@
 
 FILE* portsFile;
 
-char numPuertos[5];     // Stores the first line which has the number of ports
-uint8_t nPuertos;       // Idem but as an int
-char puertos[MAXPUERTOS][255];  // 10 string, each with 255 characters to write the ports that CAN be accessed
-
-int connected = 0;  // This will hold if we are connected to a board or not
+uint8_t nPuertos = 0;
+char puertos[MAXPUERTOS][255];
 
 // ---- FUNCTION DECLARATION
 static void drawPortNames();
@@ -32,32 +29,24 @@ static void removeComa(char* s_in) {  // Remove coma at the end of the string
 
 static void initPuertos() {
     for (uint8_t i = 0; i < MAXPUERTOS; i++)
-        strcpy(puertos[i], "\\\\.\\");
+        strcpy(puertos[i], "COM");
 }
 
 void getPorts()
 {
     initPuertos();  // Reset them to their original state
 
-    system("python ../../src/ports.py");
-
-    Sleep(500); // Wait for python :>
+    initAmadeusCom();   // Init the amad class
     
-    if ((portsFile = fopen("portList.txt", "r")) == NULL) {
-        printf("Error loading the ports !");
-        return;     // Nothing to do with ports if error upon reading
+    uint8_t disponibles[MAXPUERTOS] = { 0 };
+
+    nPuertos = amadeus_showPorts(disponibles);
+
+    for (int i = 0; i < nPuertos; i++) {
+        char temp[5];
+        itoa(disponibles[i], temp, 10);
+        strcat(puertos, temp);
     }
-
-    fgets(numPuertos, 5, portsFile);  // Get the first line that stores the number of ports availables
-
-    nPuertos = atoi(numPuertos);
-
-    uint8_t i = 0;
-    const char temp[255];
-    while (fgets(temp, 255, portsFile) != NULL) { strcat(puertos[i], temp); removeComa(puertos[i++]); } // Keep the lines coming
-
-    fclose(portsFile);
-    return;
 }
 
 #pragma endregion gettingPorts
@@ -82,8 +71,6 @@ void write(const char* buffer, int length)
 void connectPort(const char* port)
 {
     editor.connected = false;
-
-    initAmadeusCom();
 
     if (!amadeus_connect(port))    // If 0 => there has been an error
         printRightText("Error!");
@@ -140,14 +127,14 @@ static void drawPortNames() {
     {
         const uint16_t y = 6 + (i * (FONT1_CHAR_H + 1));    // Compute the height
 
-        textOut(4, y, PAL_BLCKTXT, puertos[i]);     // Draw the texts
+        textOut(6, y, PAL_BLCKTXT, puertos[i]);             // Draw the texts
     }
 }
 
 static void printRightText(const char* outText) {
     clearRect(176, 4, 113, 164);    // Nothing for now (right)
     
-    textOut(176, 4, PAL_BLCKTXT, outText);
+    textOut(178, 6, PAL_BLCKTXT, outText);
 }
 
 static void drawPortsScreen() {
@@ -164,6 +151,16 @@ void showPorts(void) {
     hideTopScreen();
     showTopRightMainScreen();
     drawPortsScreen();
+
+    if (editor.connected)
+        printRightText("Conencted");
+    else {
+        char temp[16] = { 0 };
+        sprintf(temp, "Found %d port%s", nPuertos, nPuertos == 1 ? "." : "s.");
+        printRightText(temp);
+    }
+
+    drawPortNames();
 
     ui.portShown = true;
 }
