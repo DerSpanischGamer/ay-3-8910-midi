@@ -77,8 +77,8 @@ pushButton_t pushButtons[NUM_PUSHBUTTONS] =
 	{ 270, 34, 18, 13, 1, 4, "X",				NULL,    NULL,			NULL },
 	{ 253, 48, 18, 13, 1, 4, "X",				NULL,    NULL,			NULL },
 	{ 270, 48, 18, 13, 1, 4, "X",				NULL,    NULL,			NULL },
-	{ 209, 62, 40, 13, 0, 0, "NOP",           NULL,    NULL,          NULL },
-	{ 248, 62, 40, 13, 0, 0, "NOP",           NULL,    NULL,          NULL },
+	{ 209, 62, 40, 13, 0, 0, "NOP",				NULL,    NULL,          NULL },
+	{ 248, 62, 40, 13, 0, 0, "NOP",				NULL,    NULL,          NULL },
 
 	// ------ LOGO PUSHBUTTON ------
 	//x,   y, w,   h,  p, d, text #1, text #2, funcOnDown, funcOnUp

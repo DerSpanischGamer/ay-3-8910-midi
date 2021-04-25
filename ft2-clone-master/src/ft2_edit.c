@@ -41,6 +41,8 @@ static tonTyp trackCopyBuff[MAX_PATT_LEN];
 
 static const int8_t tickArr[16] = { 16, 8, 0, 4, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 1 };
 
+static const uint8_t maxValuesRegs[14] = { 0xFF, 0x0F, 0xFF, 0x0F, 0xFF, 0x0F, 0x1F, 0x3F, 0x1F, 0x1F, 0x1F, 0xFF, 0xFF, 0x0F };
+
 void recordNote(uint8_t note, int8_t vol, bool changeNote);
 
 // when the cursor is at the note slot
@@ -400,23 +402,17 @@ void recordNote(uint8_t note, int8_t vol, bool changeNote)
 				if (!editor.nextMove)	// If we are about to enter the first number
 					noteData->ton = 0;	// Clear the cell
 
-				uint16_t preNote = note * power(10, 2 - editor.nextMove);	// Need more space than 8 bits in case he introduces a number bigger than 255
+				uint8_t pow = power(10, 2 - editor.nextMove);
+				uint16_t preNote = note * pow;	// Need more space than 8 bits in case he introduces a number bigger than 255
 				
-				if (noteData->ton + preNote >= 256)	// If we are going to overflow
-				{
-					switch (editor.nextMove) {	// Make it not
-					case 0: noteData->ton = 200; break;
-					case 1: noteData->ton = 250; break;
-					default:
-					case 2: noteData->ton = 255; break;
-					}
-				}
+				if (noteData->ton + preNote >= maxValuesRegs[c % 14] + 1)	// If we are going to overflow in the current register
+					noteData->ton = (maxValuesRegs[c % 14] / (pow)) * pow;
 				else // If we ok
 					noteData->ton += (uint8_t) preNote;	// Insert data the good ol way
 
-				noteData->instr = 1;	// Always Amadeus card
+				noteData->instr = 1;	// Always 1 in Amadeus card as this will be a check to see if the value 0 has been entered by the user or it means that there's no change
 				
-				editor.nextMove++;	// We've added a letter !
+				editor.nextMove++;		// We've added a number !
 
 				// increase row (only in edit mode)
 				if (editor.nextMove == 3)	// move row to the right

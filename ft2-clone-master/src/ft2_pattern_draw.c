@@ -33,6 +33,8 @@ static const uint16_t sharpNote2Char_big[12] = { 36*16, 37*16, 36*16, 37*16, 36*
 static const uint16_t flatNote1Char_big[12] = { 12*16, 13*16, 13*16, 14*16, 14*16, 15*16, 16*16, 16*16, 10*16, 10*16, 11*16, 11*16 };
 static const uint16_t flatNote2Char_big[12] = { 36*16, 38*16, 36*16, 38*16, 36*16, 36*16, 38*16, 36*16, 38*16, 36*16, 38*16, 36*16 };
 
+static const char* maxVals[14] = { "255", "15", "255", "15", "255", "15", "31", "127", "31", "31", "31", "255", "255", "15" };
+
 static void pattCharOut(uint32_t xPos, uint32_t yPos, uint8_t chr, uint8_t fontType, uint32_t color);
 static void drawEmptyNoteSmall(uint32_t xPos, uint32_t yPos, uint32_t color);
 static void drawKeyOffSmall(uint32_t xPos, uint32_t yPos, uint32_t color);
@@ -298,15 +300,25 @@ static void drawChannelNumbering(uint16_t yPos)
 
 	for (uint8_t i = 0; i < ui.numChannelsShown; i++)
 	{
-		if (ch < 10)
-		{
+		// Draw the number of the channel
+		if (ch < 10) {
 			charOutOutlined(xPos, yPos, PAL_MOUSEPT, '0' + (char)ch);
+
+			charOutOutlined(xPos + FONT1_CHAR_W + 1, yPos, PAL_MOUSEPT, '-');
+			charOutOutlined(xPos + 2 * FONT1_CHAR_W + 1, yPos, PAL_MOUSEPT, '0' + (char)((ch - 1) / 14));		// Draw the chip number
 		}
 		else
 		{
 			charOutOutlined(xPos, yPos, PAL_MOUSEPT, chDecTab1[ch]);
 			charOutOutlined(xPos + (FONT1_CHAR_W + 1), yPos, PAL_MOUSEPT, chDecTab2[ch]);
+
+			charOutOutlined(xPos + 2 * FONT1_CHAR_W + 1, yPos, PAL_MOUSEPT, '-');
+			charOutOutlined(xPos + 3 * FONT1_CHAR_W + 1, yPos, PAL_MOUSEPT, '0' + (char)((ch - 1) / 14));		// Draw the chip number
 		}
+
+		// Draw the max value of each chnnel
+		textOut(xPos, yPos + 10, PAL_MOUSEPT, "Max:");
+		textOut(xPos, yPos + 20, PAL_MOUSEPT, maxVals[(ch - 1) % 14]);
 
 		ch++;
 		xPos += ui.patternChannelWidth;
