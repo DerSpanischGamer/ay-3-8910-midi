@@ -1,112 +1,121 @@
 # ay-3-8910-midi
-##Una interfaz en Python para el chip AY-3-8910 que usa Arduino.
+## An interface in Python and C for the AY-3-8910 (or YM2149) that uses an Arduino (or ATmega328-P)
 
-Para poder enviar los archivos midi primero hay qeu tranformarlos en csv con este programa: https://www.fourmilab.ch/webtools/midicsv/#Download
+To be able to send midi files, first they must be converted to .csv with this program : https://www.fourmilab.ch/webtools/midicsv/#Download
 
-(o cualquier otro que transforme .mid en .csv)
+(or any other that transforms .mid to .csv)
 
-## Explicación de los archivos
+## File explanation
 
-### Carpeta *AY3910RegWrite (original para 1 chip solo conectado a Arduino)*
+### Folder *AY3910RegWrite (original file for 1 chip connected to an Arduino)*
 
-Como su nombre indica, en esta carpeta se encuentra el código para que funcione un solo chip conectado a una placa Arduino de la misma manera que se muestra en la imagen [Conexiones.png](https://github.com/DerSpanischGamer/ay-3-8910-midi/blob/master/Conexiones.png)
+As its name indicates, in this folder, there's the code to for just 1 IC connected to an Arduino.
+[Conexiones.png](https://github.com/DerSpanischGamer/ay-3-8910-midi/blob/master/Conexiones.png)
 
-### Carpeta *[https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/AY3910RegWrite-library](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Amadeus)*
+### Folder *[https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/AY3910RegWrite-library](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Amadeus)*
 
-Código que soporta 1 o 2 chips simultáneos. Es una versión simplificada del código anterior, además de más facil de leer gracias a que el código ha sido transformado en [librería](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Amadeus).
+Code that supports 2 chips simultaneously. Is simplified version of the preivous code and made easier to read thanks to the fact that it has been made into a [library](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Amadeus).
 
-### Carpeta *Amadeus*
+### Folder *Amadeus*
 
-Es la librería para hacer más fácil y limpio el código.
+Is the library that makes everything cleaner and easier to read.
 
-Las únicas funciones que hay que saberse son:
+The only functions to keep in mind are:
 
-Importar la librería
+Import the library
 `#include "Amadeus.h"`
 
-Iniciar una instancia de la libería
-`Amadeus amadeus = Amadeus(); // Iniciar la clase Amadeus`
+Create and instance of the library
+`Amadeus amadeus = Amadeus(); // Init Amadeus clss`
 
-Iniciar todo el reloj y configurar los pines
+Start the clock and configure the pins
 `amadeus.begin();`
 
-Poner un valor VAL en el registro REG del chip C
+Write the value VAL to register REG of chip C
 `amadeus.out(C, REG, VAL);`
 
-El resto de funciones son privadas ya que solo sirven para llevar a cabo las funciones que están aquí arriba. Si eres curioso echa un vistazo al código, aunque es literalmente lo mismo que el código de la primera carpeta.
+The rest of the functions are private as they are only used to carry out the functions described above. If you are curioused you can take a look at the code.
 
-### Carpeta *[Canciones](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Canciones)*
+### Folder *[Canciones](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Canciones)*
 
-No hay mucho que decir, algunas canciones que he buscado yo el archivo .mid y lo he transforamdo en .csv para poder enviarlo.
+Not much to say. Stores some songs for which I have searched the .mid file adn I have transformed into .csv to be able to play them.
 
-### Carpeta *[Programas](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Programas)*
+### Folder *[Programas](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Programas)*
 
-Boy oh boy, es aquí que empieza la diversión. Primero, los archivos .exe son medio a ignorar medio no.
+Boy oh boy, is here where the fun begins. First, teh files .exe should be ignore (for the most part).
 
-- **Controlador Registros Dual YM2149.exe** : es un programa que estoy haciendo para controlar todos los registros de una manera visual. NO ESTÁ ACABADO Y TIENE ERRORES SEGURAMENTE.
+- **Controlador Registros Dual YM2149.exe** : is a program that I am developping to control all the registers in a more visual way. IT ISN'T FINISHED AND IT SURELY HAS ERRORS.
 
-- **Midicsv.exe** : Transforma un archivo .mid en .csv. Para usarlo se necesita la consola de comandos y el comando es `Midicsv.exe "ARCHIVO.mid" "OUTPUT.csv"`. Obviamente ARCHIVO es el nombre del archivo .mid que queremos transformar y OUTPUT es el nombre que queremos que tenga el archivo de salida.
+- **Midicsv.exe** : Transforms a .mid file into a .csv. To use it you need cmd and the command is `Midicsv.exe "FILE.mid" "OUTPUT.csv"`. FILE is the file you want to transform and OUTPUT is the name of the .csv you desire to have.
 
-- **bin2hex.exe** : A ignorar, no se ni lo que hace...
+- **bin2hex.exe** : Should be ignored, I don't even know what it does...
 
-- **hexdump.exe** : Útil para hacer un hexdump desde la consola de comandos, pero de momento me es un poco inútil ya que envío los bytes directamente en vez de guardarlos, pero quién sabe, a lo mejor algún día me será útil.
+- **hexdump.exe** : Useful to make a hexdump in cmd.
 
-Ok, llegamos a los archivos .py que son los interesantes:
+Alright, we are at the .py files that are interesting:
 
-- **amadeusguardar.py** : sirve para guardar una canción que ya está en .csv desde un midi en un archivo .amds (es un archivo .csv pero he puesto la extensión personalizada para no confundirme y que mole más jejeje).
+- **amadeusguardar.py** : useful to save a song that is in .csv from a .mid file into a .amds file (it is a .csv file but I have put my own extension so I don't get confused and to make it cooler hehehe).
 
-Uso: `python amadeusguardar.py "ARCHIVO.csv" "SALIDA"`
+The way it stores data is the following:
 
-Nota: no hace falta poner SALIDA.amds, aunque tambien se puede. Tambien se puede poner SALIDA.csv, aunque el archivo saldrá como SALIDA.amds. Para abrir los archivos .amds se puede cambiar la extensión a .csv o con click derecho > Abrir con > Notepad++ para los pros o Excel/Libreoffice Calc para los noobs.
+'INFOS,BPM,CHIP
+TIMESTAMP,VAL,VAL,VAL...
+TIME STAMP, VAL, VAL,VAL...
+...'
 
-- **amadeussender_legacy.py** : sirve para poder utilizar los dos chips de una [placa Amadeus](https://www.youtube.com/watch?v=V24AyQ2n8vY) o un Arduino que esté conectado de la misma manera. La diferencia entre este archivo y **midisender.py** es que este puede manejar **6** canales simultáneos, en vez de 3 tristes y solitarios canales.
+where INFOS is a string that never changes, BPM is the BPM of the song and CHIP is the number of chips that are needed to play the song.
 
-Para usarlo: `python amadeussender_legacy.py "ARCHIVO.csv" "PUERTO"`
+.amds only stores the timestamps where there's a change in any of the registers. That's why TIMESTAMP doesn't increment from 0 to the end of the file, but there are jumps. This means that the notes are held for all that time.
 
-IMPORTANTE: los datos que envia este archivo son (en este orden):
+Use: `python amadeusguardar.py "FILE.csv" "OUTPUT.amds"`
 
-* CHIP : ( 0 -> PRIMERO, 1 -> SEGUNDO ).
+Note: you can open .amds files with Notepad++, Libreoffice Calc or Excel.
 
-* REGISTRO : el registro del chip que queremos modificar ( 0 -> 16 ).
+- **amadeussender_legacy.py** : used to be able to use both ICs of an [Amadeus board] (https://www.youtube.com/watch?v=V24AyQ2n8vY) or an Arduino wired the same way. The difference between this file and **amadeussender.py** is that the latter can manage **6** channels simultaneously, instead of 3.
 
-* VALOR : el valor que queremos escribir en el registro ( 0 -> 256).
+To use: 'python amadeussender_legacy.py "FILE.csv" "PORT"'
 
-Por lo que, si enviamos los bytes [0,1,2], tendremos el valor 2 en el registro 1 del chip (PRIMERO).
+IMPORTANT: the data sent by this program are in this order:
 
-Para que funcione lo que envía, hay que instalar en el Arduino el código adecuado (el que no pone para 1 placa vamos).
+* CHIP: (0 -> FIRST, 2 -> SECOND)
 
-- **amadeussender.py** : una versión mejorada de amadeussender_legacy.py que permite detectar diferentes pistas que tocarían simultaneamente. Se obtiene pasando por todo el archivo .csv y una vez que se tienen todas las notas, se ordenan por tiempo, y después es todo igual a amadeussender.py
+* REGISTER: the register that we wish to modify (0 -> 13) (there are registers 14 and 15 but are of no use).
 
-Para usarlo: `python amadeussender.py "ARCHIVO.csv" "PUERTO" "VOLUMEN=15"`
+* VALUE: the value that we want to write to the register (0 -> 256) (Note: some registers will ignore over a certain value).
 
-El valor predeterminado para el volumen es el máximo.
+So, if we send the bytes [0x00, 0x01, 0x02] we will be writing the value 0x02 to the register 0x01 of the chip 0x00 (first).
 
-- **csv-midi.py** : EN DESARROLLO. Cuando esté acabado guardará los contenidos de un archivo .mid en 768 bytes para que lo lea un microprocesador como el 6502 o Z80 :)
+To be able to make it work, we have to upload to the board the correct software.
 
-- **midisender.py** : hace lo mismo que amadeussender.py, salvo que solo disponemos de 3 canales ya que es el número de canales de un chip YM2149 / AY-3-8910, y los datos no se envían de la misma manera. Ejercicio para el lector ver cómo se envían porque me da pereza mirarlo de nuevo, pero la diferencia es que con amadeussender, el que hace el trabajo es el ordenador, ya que descompone la nota en los valores para cada registro, mientras que en este, el Arduino tiene que "decodificar" un poco el mensaje que le llega para tocar la nota.
+- **amadeussender.py** : an improved version of **anadeussender.py** that detects different tracks of a midi file, and allows up to 6 channels simultaneously. It does this by looking through all the file looking for notes, then sorts them by their timestamp, and then sending them like **amadeussender_legacy.py**.
 
-Uso: `python midisender.py "ARCHIVO.csv" "PUERTO"`
+How to use: 'python amadeussender.py "FILE.csv" "PORT" "VOLUME=15"'
 
-- **frequency_calculator.py** :  Calcula el valor que hay que poner en los registros del YM2149/AY-3-8910 para obtener todas las frecuencias posibles. Esto es necesario porque luego el programa csv-midi.py lee la frecuencia del archivo csv (que antes era midi) y necesita saber el equivalente para el AY-3-8910
+The default volume is 15. You don't have to write VOLUME=, just the value between 0 and 15 (included) that you want the board to play. Recommendation: 10-12 is not very loud and not very faint.
 
-frequency_calculator.py devuelve un string con forma de array de python para pegarlo directamente en la variable combis de csv-midi.py o midisender.py.
+- **csv-midi.py ** : Under developpement.
 
-Para usarlo: `python thing_calculator.py [FRECUENCIA EN Hz (opcional)]`
+- **midisender.py** : does the same as amadeussender.py, except that it only works with a max. of 3 channels. How it works is left as an exercise to the reader.
 
-Ex.: `python thing_calculator.py`
-o
-`python thing_calculator.py 1000000`
+- **frequency_calculator.py** : Calculates the value that we have to put in the registers of the YM2149/AY-3-8910 to obtain all the possible frequencies. This is necessary because the program **amadeussender.py** and **amadeusguardar.py** needs the frequency for each note.
 
-=> El primero ejecuta el programa con la frecuencia predeterminada de 2MHz, mientras que el segundo lo hace con una de 1Mhz.
+frequency_calculator.py prints a string with the shape of a python array that then can be directly pasted in a script.
 
-### Carpeta *[VideoMaker](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Programas/VideoMaker)* (dentro de la carpeta *Programas*)
+To use: 'python frequency_calculator.py [FREQUENCY IN Hz (OPTIONAL)]'
 
-Contiene el programa **cancionVideo.py**. Este programa necesita un archivo .amds generado por el programa amadeusguardar.py. Lo que hace es generar una secuencia de imágenes (o fotogramas), que luego pueden ser reproducidos a la velocidad que indicada para que muestre el estado de los registros a la vez que estos suenan.
+Ex.: 'python frequency_calculator.py'
+or
+'python frequency_calculator.py'
 
-Uso: `python cancionVideo.py "ARCHIVO.amds"`
+=> The first executes the program for the default frequency of 2MHz, meanwhile the 2nd will execute the program for a frequency of 1MHz.
 
-Nota: Aún tengo que ver por qué el vídeo que sale y la canción que se tocan no van a la par cuando deberían durar lo mismo, algo tiene que ver el tiempo de ejecución del código seguramente, pero me da pereza ponerme a hacer timers. Puede que lo haga, pero no en python sino en un programa en C o algo parecido idk. Para pasar de imágenes a vídeo recomiendo utilizar ffmpeg, no lo subo porque no es mío, pero dejo el comando de como pasar las imágenes a vídeo escrito en el archivo comando.txt
+### Folder *[VideoMaker](https://github.com/DerSpanischGamer/ay-3-8910-midi/tree/master/Programas/VideoMaker)* (dentro de la carpeta *Programas*)
 
-CRÉDITOS:
-  -CÓDIGO PARA ENVIAR ÓRDENES A UN AY-3-8910 o YM2149 DESDE UN ARDUIO: https://github.com/986-Studio/AY-3-3910-Player/blob/master/AY3910RegWrite/AY3910RegWrite.ino PARTE DE ARDUINO
-- CÓDIGO DEL GENIO QUE HIZO EL MUSIC TRACKER ORIGINAL SOBRE EL QUE ESTOY BASANDO EL MUSIC TRACKER PARA LA PLACA AMADEUS: https://github.com/8bitbubsy/ft2-clone
+Contains the program **cancionVideo.py**. This program is out of date because it uses the old .amds format.
+
+It takes a .amds file and transforms it into a series of frames that then can be made into a video using the program ffmpeg. I leave the command to be used in the file comando.txt
+
+###CREDITS:
+ - CODE TO SEND ORDERS TO AN AY-3-8910 OR YM2149 CONNECTED TO AN ARDUINO: https://github.com/986-Studio/AY-3-3910-Player/blob/master/AY3910RegWrite/AY3910RegWrite.ino (ARDUINO SIDE)
+
+ - CODE OF THE GENIOUS THAT MADE THE FT2-CLONE TRACKER FROM WHICH I AM BUILDING MY OWN TRACKER FOR THE AMADEUS BOARD: https://github.com/8bitbubsy/ft2-clone
