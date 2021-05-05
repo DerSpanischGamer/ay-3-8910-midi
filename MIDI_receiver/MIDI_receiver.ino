@@ -45,6 +45,8 @@ void MyHandleNoteOn(byte channel, byte pitch, byte velocity) {
 
   const char can = findLibre();
 
+  if (can == -1) { return; }
+
   const char chip = can / 3;
   const char canal = can % 3;
 
