@@ -9,6 +9,7 @@ Amadeus amadeus = Amadeus(); // Iniciar la clase Amadeus
 // ----------- Funciones -----------
 
 void setup() {
+  Serial.begin(115200);
   amadeus.begin();
 }
 

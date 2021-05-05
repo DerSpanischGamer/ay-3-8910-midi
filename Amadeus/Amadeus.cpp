@@ -70,7 +70,6 @@ void Amadeus::begin() {
 	  setup_control(B00001111);
 	  setup_data(INACTIVE);
 	 
-	  Serial.begin(115200);
 	  // Be sure to kill all possible sound by setting volume to zero
 
 	  out(PRIMERO, REG_LVL_A, 0);
@@ -189,7 +188,7 @@ void Amadeus::out(char chip, uint8_t reg, uint8_t value)
   
   set_control(chip, INACTIVE);  // Dejar de ser mandón y quitar la orden para no sobreescribir el registro
   PORTD = 0;                    // Borrar el registro del bus para no dejar pruebas (aunque hemos dejado pruebas en el puerto B, para hacerlo bien deberíamos hacer setup_data(0);)
-  //setup_data(INACTIVE);       // A mí también me gustaría saber por qué esto está comentado :(
+  setup_data(INACTIVE);       // A mí también me gustaría saber por qué esto está comentado :(
 }
 
 void Amadeus::versionOut() { Serial.write(VERSION); }
