@@ -6,7 +6,7 @@
 
 #define volumen B00001111 // valores entre B00000000 Y B00001111
 
-#define VERSION "v1.1"
+#define LED B0100000	// LED es PC5 (pin 5 puerto C [analogico])
 
 const int Amadeus::freqOutputPin = 11;   // OC2A output pin for ATmega328 boards
 // Constants are computed at compile time
@@ -147,11 +147,11 @@ void Amadeus::setup_control(char modo)
  */
 void Amadeus::set_control(char chip, char mode)
 {
-  if (chip == 0) { // Primer ym2149 y no necesitamos cambiar nada
-    PORTC = mode; // Es MUY importante que SOLO escribamos mode porque si ponemos 1 en los otros pines analógicos, NO estaremos en el modo inactivo del otro chip por lo que la hemos jodido
+  if (chip == 0) { 							// Primer ym2149 y no necesitamos cambiar nada
+    PORTC = (PORTC & LED) | mode; 			// Es MUY importante que SOLO escribamos mode porque si ponemos 1 en los otros pines analógicos, NO estaremos en el modo inactivo del otro chip por lo que la hemos jodido
   } else {
-    PORTC = (mode << 2); // Igual de importante, pero ahora estamos haciendo que el segundo chip este en el modo que queremos. El primer chip será puesto a inactivo si no lo estaba ya
-  }
+    PORTC = (PORTC & LED) | (mode << 2); 	// Igual de importante, pero ahora estamos haciendo que el segundo chip este en el modo que queremos. El primer chip será puesto a inactivo si no lo estaba ya
+  }											// NOTA: en los dos casos no tocamos en estado del LED
 }
 
 // Poner los datos en el bus. Hay que recordar que los dos bits inferiores del puerto B corresponde a los dos inferiores de los datos, y lo contrario para el puerto D
