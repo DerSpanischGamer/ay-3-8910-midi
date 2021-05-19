@@ -83,7 +83,7 @@ def dibujarFotograma(reciclar):
 			
 			ultimoFotograma = fotograma									# Guardar el fotograma que acabamos de dibujar para que no haya que redibujarlo en caso de tener que reutilizarlo
 	
-	fotograma.save("ouput/" + str(posicion) + "_" + str(archivo[:-5]) + ".png")		# Guardar el fotograma
+	fotograma.save("output/" + str(posicion) + "_" + str(archivo[:-5]) + ".png")		# Guardar el fotograma
 	
 	posicion += 1		# Aumentar la posicion
 
@@ -118,48 +118,31 @@ def tiempoYaExiste(tiempo):
 with open(archivo, "r") as csv_file:
 	csv_reader = csv.reader(csv_file, delimiter = ',')
 
-	tempo = float(next(csv_reader)[1])			# Guarda el tempo real
-	FPS = pulsos * (1/tempo)					# Guarda los FPS del video
+	tempo = float(next(csv_reader)[1]) / 60000 # Guarda el tempo
+
+	FPS = 1 / (24 * tempo)							# Guarda los FPS del video (BPM / 60 = BPs)
 	
-	print("Datos de la canción: \n Un pulso midi equivale a", tempo, "ms, por lo que el video ira a", FPS, "FPS.")
+	print("Datos de la canción: \n Tempo es ", tempo, "beats/ms, por lo que el video ira a", FPS, "FPS.")
 	
 	chip = 0
-	preNotas = []
 	for nota in csv_reader:
-		try:
-			temp = [0] * 8
+			temp = [0] * 13
 			
-			for i in range(0, 7):
+			for i in range(0, 7):		# Coger el estado de los primeros registros
 				temp[i] = int(nota[i])
 			
-			temp[7] = chip
+			for i in range(14, 20):
+				temp[i - 7] = int(nota[i]) 
 			
-			preNotas.append(temp)
-		except (ValueError, IndexError):
-			chip += 1
-	
-	preNotasNP = np.asarray(preNotas)
-	preNotasOrdenadas = preNotasNP[np.argsort(preNotasNP[:, 0])]
-	
-	for nota in preNotasOrdenadas:
-		preNota = notas[-1][:]		# Coger la ultima nota
-		
-		if (preNota[0] == nota[0]):	# Si el tiempo es igual que el anterior
-			for i in range(1, 7):
-				notas[-1][(nota[-1] * 6) + i] = nota[i]	# Actualizar el estado de los registros directamente			
-		else:
-			preNota[0] = nota[0]
-			
-			for i in range(1, 7):
-				preNota[(nota[-1] * 6) + i] = nota[i]	# Actualizar el estado de los registros en preNota
-			
-			notas.append(preNota)	# Añadir la nueva nota
+			notas.append(temp)
 
 for i in range(len(notas)):
-	notas[i][0] = int(notas[i][0] * (FPS / 1000)) # Pasar de tiempo a fotogramas
+	notas[i][0] = int(notas[i][0] * FPS / 1000) # Pasar de tiempo a fotogramas
+
+input("Todo listo, pulsa Enter para empezar")
 
 final = len(notas)
 totalTiempos = notas[-1][0]
 for i in range(final):
-	printProgressBar(posicion + 1, totalTiempos, prefix = 'Progreso:', suffix = 'Completado', length = 50)
+	printProgressBar(i + 1, final, prefix = 'Progreso:', suffix = 'Completado', length = 50)
 	fotogramaManager(i)

@@ -33,7 +33,7 @@ volumen = volumenMax	# Guarda el volumen al que se tienen que poner los canales 
 preNotas = [] # Guarda un array con todas las notas que hay, aunque sean de pistas diferentes. Es un array de arrays y cada array tiene [Tiempo, 1 = encender : 0 = apagar, nota]
 
 tiempos = []					# Guarda todos los tiempos para hacer los numeros más pequeños
-notas = [[], []] 				# Array de 2 arrays (0 = primero, 1 = segundo) de arrays de 1 int + 14 bytes que guardan cada uno el valor del momento + el valor de cada registor en ese momento
+notas = [[0] * 29] 				# Array de que guarda el estado de todos los registros (de los dos chips) + el timestamp
 tiemposEntreNotas = [] 			# Delay que hay entre cambios de notas
 
 canalesUtilizados = 0	# Utilizado para ver cuantos canales estan abiertos en un momento dado
@@ -81,21 +81,21 @@ def anadirNota(tiempo, nota):
 	
 	dispo[posicion] = nota # Indicar que el canal no esta disponible quitando el -1 y poniendo la nota que esta sonando
 
-	if (notas[chip][-1][0] == tiempo):
-		notas[chip][-1][(canal * 2) + 1] = combis[nota][1]
-		notas[chip][-1][(canal * 2) + 2] = combis[nota][0]
-		notas[chip][-1][canal + 9] = volumen
+	if (notas[-1][0] == tiempo):
+		notas[-1][(chip * 14) + (canal * 2) + 1] = combis[nota][1]
+		notas[-1][(chip * 14) + (canal * 2) + 2] = combis[nota][0]
+		notas[-1][(chip * 14) +  canal + 9] = volumen
 	else:
-		ultima = notas[chip][-1][:]	# Coger el ultimo cambio que paso
+		ultima = notas[-1][:]	# Coger el ultimo cambio que paso
 
 		tiempos.append(tiempo)
 		
-		ultima[0] = tiempo								# Poner el nuevo tiempo
-		ultima[(canal * 2) + 1] = combis[nota][1]		# Poner la parte inferior de la nota
-		ultima[(canal * 2) + 2] = combis[nota][0]		# Poner la parte superior de la nota
-		ultima[canal + 9] = volumen						# Poner el volumen al nivel seleccionado
+		ultima[0] = tiempo											# Poner el nuevo tiempo
+		ultima[(chip * 14) + (canal * 2) + 1] = combis[nota][1]		# Poner la parte inferior de la nota
+		ultima[(chip * 14) + (canal * 2) + 2] = combis[nota][0]		# Poner la parte superior de la nota
+		ultima[(chip * 14) + canal + 9] = volumen					# Poner el volumen al nivel seleccionado
 		
-		notas[chip].append(ultima)						# Guardar la versión modificada de la nota
+		notas.append(ultima)						# Guardar la versión modificada de la nota
 
 # Quita la nota y pone el canal como disponible
 def quitarNota(tiempo, nota):
@@ -111,21 +111,21 @@ def quitarNota(tiempo, nota):
 	dispo[posicion] = -1	# Marcar el canal como disponible
 	
 	# Para desactivar un canal es facil, solamente ponemos el volumen a 0 :)
-	if (notas[chip][-1][0] == tiempo): # Si el tiempo es el mismo, de nada sirve añadir otro momento con el mismo tiempo, solo hay que modificar los registros necesarios
-		notas[chip][-1][(canal * 2) + 1] = 0
-		notas[chip][-1][(canal * 2) + 2] = 0
-		notas[chip][-1][canal + 9] = 0
+	if (notas[-1][0] == tiempo): # Si el tiempo es el mismo, de nada sirve añadir otro momento con el mismo tiempo, solo hay que modificar los registros necesarios
+		notas[-1][(chip * 14) + (canal * 2) + 1] = 0
+		notas[-1][(chip * 14) + (canal * 2) + 2] = 0
+		notas[-1][(chip * 14) +  canal + 9] = 0
 	else:								# Si el tiempo es diferente, sí que hay que añadir otra "entrada"
-		ultima = notas[chip][-1][:]
+		ultima = notas[-1][:]
 		
 		tiempos.append(tiempo)
 		
 		ultima[0] = tiempo				# Guardar el tiempo en el que hay que silenciarlo
-		ultima[(canal * 2) + 1] = 0		# Poner la frecuencia a 0
-		ultima[(canal * 2) + 2] = 0		# Poner la frecuencia a 0
-		ultima[canal + 9] = 0			# Poner el volumen a 0
+		ultima[(chip * 14) + (canal * 2) + 1] = 0		# Poner la frecuencia a 0
+		ultima[(chip * 14) + (canal * 2) + 2] = 0		# Poner la frecuencia a 0
+		ultima[(chip * 14) +  canal + 9] = 0			# Poner el volumen a 0
 		
-		notas[chip].append(ultima)		# Añadir la nueva version actualizada
+		notas.append(ultima)		# Añadir la nueva version actualizada
 
 # ------------ CODIGO ------------
 
@@ -149,9 +149,6 @@ with open(archivo) as csv_file:
 preNotasNP = np.asarray(preNotas) 			# Pasar el array preNotas a un array de Numpy
 preNotasNP[preNotasNP[:, 0].argsort()]		# Ordenar el array gracias a numpy
 
-notas[0].append([0] * 15)   # El estado inicial de todos los registros del primer chip
-notas[1].append([0] * 15)   # El estado inicial de todos los registros del segundo chip
-
 for nota in preNotasNP:
 	if (nota[1] == 1): anadirNota(nota[0], int(nota[2]))
 	else: quitarNota(nota[0], int(nota[2]))
@@ -161,56 +158,6 @@ if (preguntar): # Preguntar si quiere continuar
 else:
 	input("Canción lista, dale a Enter para guardar. \n")
 
-# TODO: Hacer aqui que las notas se pongan juntas
-a = 0;
-b = 0;
-
-finalNotas = []
-finalNotas.append([0] * 29) # Estado inicial de todos los registros
-
-
-# LO QUE HAY DEBAJO ES FEO DE COJONES PERO FUNCIONA, TOOD: ARREGLAR EL TIMESTAMP PARA QUE PUEDA SER LEIDO POR EL OTRO PROGRAMA
-
-
-while a < len(notas[0]) and b < len(notas[1]):          # Mientras no hayamos pasado todas las notas al array finalNotas
-    if a == len(notas[0]):                              # El array notas[0] ya ha sido copiado por completo, faltan las notas del array notas[1]
-        if finalNotas[-1][0] != notas[1][b][0]:         # Si el timestamp de la nota es diferente
-            temp = copy.deepcopy(finalNotas[-1])                       # Copiar el estado anterior (para solo cambiar los registros que son diferentes)
-            temp[0] = notas[1][b][0]                    # Actualizar el timestamp
-            finalNotas.append(temp)
-            
-        for i in range(15, 29):                         # Como estamos en el segundo chip, tenemos que cambiar los ultimos registros
-            finalNotas[-1][i] = notas[1][b][i - 14]          # Copiar los registros
-        b += 1
-    elif b == len(notas[1]):
-        if finalNotas[-1][0] != notas[0][a][0]:
-            temp = copy.deepcopy(finalNotas[-1])
-            temp[0] = notas[0][a][0]
-            finalNotas.append(temp)
-            
-        for i in range(1, 15):
-            finalNotas[-1][i] = notas[0][a][i]
-        a += 1
-    else:                                                   # En este caso significa que aun quedan notas por copiar de los dos arrays (notas[0] y notas[1])
-        if notas[0][a][0] <= notas[0][b][0]:                    # Si el array notas[0] pasa antes
-            if finalNotas[-1][0] != notas[0][a][0]:             # Si el timestamp es diferente
-                temp  = copy.deepcopy(finalNotas[-1])                          # Primero copiar el ultimo estado
-                temp[0] = notas[0][a][0]              # Actualizar el timestamp
-                finalNotas.append(temp)
-            
-            for i in range(1, 15):
-                finalNotas[-1][i] = notas[0][a][i]
-            a += 1
-        elif notas[0][a][0] > notas[0][b][0]:
-            if finalNotas[-1][0] != notas[1][b][0]:
-                temp = copy.deepcopy(finalNotas[-1])
-                temp[0] = notas[0][a][0]
-                finalNotas.append(temp)
-            
-            for i in range(15, 29):
-                finalNotas[-1][i] = notas[1][b][i - 14]
-            b += 1
-
 # Guardar array
 with open(salida + ".amds", mode = 'w', newline = '') as output:
 	writer = csv.writer(output, delimiter = ',', quotechar = "'", quoting = csv.QUOTE_MINIMAL)
@@ -219,7 +166,7 @@ with open(salida + ".amds", mode = 'w', newline = '') as output:
 	writer.writerow(["INFOS", int(round((60 * 1000000) / ogTime, 0)) , 2]) 	# El primer valor guarda primero el string INFO para que de error si se intenta parsear, el segundo valor es el tempo en BPM, el tercer valor indica el número de chips
 	
 	# Escribir toda la información de lo que hacen los dos chips
-	for nota in finalNotas:
+	for nota in notas:
 		writer.writerow(nota)
         
 print("Fin")
