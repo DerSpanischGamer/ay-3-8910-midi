@@ -1,4 +1,4 @@
-# Uso: python amadeussender.py "ARCHIVO.csv" "PUERTO" "VOLUMEN=10"
+# Uso: python amadeusdecay.py "ARCHIVO.csv" "PUERTO" "VOLUMEN=10" "MODO = 0 (0:linear / 1:log)" "LOG_DECAY=0.5"
 
 # -------- Esta versión modificada de amadeussender permite tocar pistas (tracks) simultaneas que en el archivo .csv no están la una después de la otra
 
@@ -29,17 +29,48 @@ archivo = sys.argv[1]	# Guarda el nombre del archivo .csv que se abre
 
 puerto = sys.argv[2]	# Guarda el puerto al que hay que conectarse
 
-volumen = 10			# Guarda el volumen al que se tienen que poner los canales una vez que estén activos (el predeterminado es 10)
+volumen = 10	# Guarda el volumen al que se tienen que poner los canales una vez que estén activos (el predeterminado es 10)
+
+decay = 0.5		# Guarda el valor de decay en el caso en el que el utilizador use log (si no mete nada, el modo predeterminado es linear)
+linear = True	# Modo de decay a usar
 
 if (len(sys.argv) >= 4):
 	try:
-		volumen = int(sys.argv[3])
+		volumenTemp = int(sys.argv[3])
 		
-		if (volumen > volumenMax or volumen < volumenMin):
-			print("El valor máximo es",volumenMax,"y el minimo",volumenMin)
-			quit()
+		if (volumenTemp > volumenMax or volumenTemp < volumenMin):
+			print("El valor máximo es",volumenMax,"y el minimo",volumenMin)	# Usar volumen predeterminado
+		else:
+			volumen = volumenTemp
+
+		if (len(sys.argv) >= 5):
+			try:
+				modo = int(sys.argv[4])
+				
+				if (modo != 0 and modo != 1):			# Numero introducido incorrecto
+					print("Modo tiene que ser 0 o 1")
+				else:									# Numero introducido es 0 o 1
+					if (modo == 1):						# Si es 1 entonces el usuario quiere log
+						linear = False					# Le damos log. Si es 0 no hay que hacer nada ya que el predeterminado es linear
+				
+				if (len(sys.argv) >= 6 and not linear):		# Si hay un 5 argumento, lo cogemos solo es estamos en modo log, ya que linear es... linear
+					try:
+						decayTemp = eval(sys.argv[5])
+							
+						if (decayTemp > 0 and decayTemp < 1):
+							decay = decayTemp
+						else:
+							print("El valor minimo es 0 y el maximo es 1 (no incluidos)")
+					except ValueError:
+						print("El decay introducido",sys.argv[4],"no es valido. Por favor introduce un numero decimal entre 0 y 1")
+						quit()
+				elif (len(sys.argv) < 6 and not linear):
+					print("Falta el ratio de decay del volume, se utilizara el valor predeterminado de",decay)
+			except ValueError:
+				print("Modo tiene que ser un entero igual a 0 (linear) o 1 (log)")
+				quit()
 	except ValueError:
-		print("El volumen introducido", sys.argv[3], "no es válido, por favor introduce un número entero entre ",volumenMin," y", volumenMax)
+		print("El volumen introducido", sys.argv[3], "no es válido, por favor introduce un número entero entre",volumenMin,"y", volumenMax)
 		quit()
 
 preNotas = [] # Guarda un array con todas las notas que hay, aunque sean de pistas diferentes. Es un array de arrays y cada array tiene [Tiempo, 1 = encender : 0 = apagar, nota]
@@ -115,13 +146,26 @@ def anadirNota(tiempo, nota):
 	notas.append([chip, (canal * 2) + 1, combis[nota][0]])
 	notas.append([chip, canal + 8, volumen])
 
+# Baja el volumen de una nota para hacer el efecto de decay
+def anadirDecay(tiempo, vol, nota):
+	global ultimavez
+	if (tiempo - ultimavez < 0): return # Sanity check
+	
+	posicion = getCanalNoDispo(nota)	# Coger el canal que tiene la nota
+	if (posicion == -1): return			# Canal no encontrado => parar
+	
+	tiemposEntreNotas.append(tiempo - ultimavez)
+	ultimavez = tiempo
+	
+	notas.append([posicion // 3, (posicion % 3) + 8, vol])
+
 # Quita la nota y pone el canal como disponible
 def quitarNota(tiempo, nota):
 	global ultimavez
 	if (tiempo - ultimavez < 0): return	# Sanity check
 	
 	posicion = getCanalNoDispo(nota)	# Coger el canal que esta tocando la nota nota
-	if (posicion == -1): return		# Si por alguno razon algo fuera mal, pararse
+	if (posicion == -1): return			# Si por alguno razon algo fuera mal, pararse
 	
 	tiemposEntreNotas.append(tiempo - ultimavez)
 	ultimavez = tiempo
@@ -152,9 +196,67 @@ with open(archivo) as csv_file:
 preNotasNP = np.asarray(preNotas) # Pasar el array preNotas a un array de Numpy
 preNotasNP.view('d,i8,i8').sort(axis = 0) # Ordenar el array con respecto a la columna 0 (tiempo)
 
+def calcularDecayLinear(pos, tiempo, notaIni):
+	global volumen, preNotasNP
+	
+	t0 = tiempo
+	tf = -1
+	for i in range(pos, len(preNotasNP)):							# Antes de calcular el delay hay que encontrar cuando se acaba la nota
+		if (preNotasNP[i][2] == notaIni and preNotasNP[i][1] == 0):	# Si es la señal de que se acaba la nota
+			tf = preNotasNP[i][0]
+			break
+	
+	if (tf == -1): return 		# No ha encontrado cuando se acaba la nota
+	
+	if (tf - t0 < 75): return 	# Si el tiempo entre las dos notas dura menos de 75ms no merece la pena bajar el volumen cada 5ms
+	
+	tiemposDecay = np.linspace(t0, tf, volumen + 1)[1:-1]		# Crear los keypoints
+	volumenDecay = np.linspace(volumen - 1, 1, volumen - 1)		# Ignorar el primer y ultimo ya que son los comandos noteOn y noteOff
+	
+	for i in range(volumen - 1):
+		preNotasNP = np.append(preNotasNP, [[tiemposDecay[i], volumenDecay[i] + 1, notaIni]], axis = 0)
+	
+	preNotasNP.view('d, i8, i8').sort(axis = 0)		# Reordenar el array
+
+def calcularDecayLog(pos, tiempo, notaIni):
+	global decay, volumen, preNotasNP
+	
+	t0 = tiempo
+	tf = -1
+	for i in range(pos, len(preNotasNP)):	# Antes de calcular el delay hay que encontrar cuando se acaba la nota
+		if (preNotasNP[i][2] == notaIni and preNotasNP[i][1] == 0):	# Si es la señal de que se acaba la nota
+			tf = preNotasNP[i][0]
+			break
+	
+	if (tf == -1): return # No ha encontrado cuando se acaba la nota
+	
+	dt = tf - t0	# Diferencia de tiempo en ms
+	
+	if (dt < 300):	# Check if smol
+		calcularDecayLinear(pos, tiempo, notaIni)	# Si el tiempo sobre el que actuamos es muy pequeño, aproximacion linear
+		return										# My job here is done :>
+	
+	count = np.arange(1, volumen - 1, dtype = float)	# Generar los puntos
+	tiemposDecay = dt * (1 - (2 ** -count)) + f0		# Hacer que se mapeen en el tiempo
+	
+	volumenDecay = np.linspace(volumen - 1, 1, volumen - 1)	# Calcular los tiempos
+	
+	for i in range(volumen - 1):
+		preNotasNP = np.append(preNotasNP, [[tiemposDecay[i], volumenDecay[i], notaIni]], axis = 0)
+	
+	preNotasNP.view('d, i8, i8').sort(axis = 0)	# Ordenar el array
+
+# Calcular los decays
+poss = 0
+while poss < len(preNotasNP):
+	if (preNotasNP[poss][1] == 1):
+		calcularDecayLinear(poss, preNotasNP[poss][0], preNotasNP[poss][2])
+	poss += 1
+
 for nota in preNotasNP:
 	if (nota[1] == 1): anadirNota(nota[0], int(nota[2]))
-	else: quitarNota(nota[0], int(nota[2]))
+	elif (nota[1] == 0): quitarNota(nota[0], int(nota[2]))
+	else: anadirDecay(nota[0], int(nota[1]) - 1, int(nota[2]))
 
 # Mirar si hay mas de 6 canales abiertos a la vez
 for nota in notas:
@@ -167,7 +269,7 @@ for nota in notas:
 
 # Calcular el tiempo sumando todos los tiempos entre notas
 for i in tiemposEntreNotas: total += i
-total /= 1000 # Pasar a segundos
+total /= 1000 		# Pasar a segundos
 
 if (preguntar): # Preguntar si quiere continuar
 	if (input("El archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
@@ -184,9 +286,8 @@ with serial.Serial(puerto, 115200, timeout=1) as ser:
 		
 		t = bytearray(notas[i])	# Transformar cada array en un array de bytes
 		ser.write(t)			# Y enviar el array de bytes
-		print(t)
 		
-		print(" {}".format(getTiempo(suma) + " " + getLoadingBar(i, len(tiemposEntreNotas))) + " " + getTiempo(total), end="\r")
+		print(" {}".format(getTiempo(suma) + " " + getLoadingBar(i + 1, len(tiemposEntreNotas))) + " " + getTiempo(total), end="\r")
 	
 	time.sleep(1)	# Descansar después de la actuación
 	for c in range(len(dispo)):	# Desactivar todos los canales

@@ -147,12 +147,17 @@ void Amadeus::setup_control(char modo)
  */
 void Amadeus::set_control(char chip, char mode)
 {
-  if (chip == 0) { 							// Primer ym2149 y no necesitamos cambiar nada
+  if (chip == 0) 							// Primer ym2149 y no necesitamos cambiar nada
     PORTC = (PORTC & LED) | mode; 			// Es MUY importante que SOLO escribamos mode porque si ponemos 1 en los otros pines analógicos, NO estaremos en el modo inactivo del otro chip por lo que la hemos jodido
-  } else {
+  else
     PORTC = (PORTC & LED) | (mode << 2); 	// Igual de importante, pero ahora estamos haciendo que el segundo chip este en el modo que queremos. El primer chip será puesto a inactivo si no lo estaba ya
-  }											// NOTA: en los dos casos no tocamos en estado del LED
 }
+
+// Encender LED
+void ledOn() { PORTC |= LED; }
+
+// Apagar LED
+void ledOff() { PORTC &= ~LED; }
 
 // Poner los datos en el bus. Hay que recordar que los dos bits inferiores del puerto B corresponde a los dos inferiores de los datos, y lo contrario para el puerto D
 void Amadeus::SetData(unsigned char data)
@@ -190,8 +195,6 @@ void Amadeus::out(char chip, uint8_t reg, uint8_t value)
   PORTD = 0;                    // Borrar el registro del bus para no dejar pruebas (aunque hemos dejado pruebas en el puerto B, para hacerlo bien deberíamos hacer setup_data(0);)
   setup_data(INACTIVE);       // A mí también me gustaría saber por qué esto está comentado :(
 }
-
-void Amadeus::versionOut() { Serial.write(VERSION); }
 
 // Leer un registro, imagino que no hace falta poner la dirección ? O eso, o me estoy perdiendo algo
 uint8_t Amadeus::read_2149_reg(uint8_t reg)
