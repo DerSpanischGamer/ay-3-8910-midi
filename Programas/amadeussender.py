@@ -184,7 +184,6 @@ with serial.Serial(puerto, 115200, timeout=1) as ser:
 		
 		t = bytearray(notas[i])	# Transformar cada array en un array de bytes
 		ser.write(t)			# Y enviar el array de bytes
-		print(t)
 		
 		print(" {}".format(getTiempo(suma) + " " + getLoadingBar(i, len(tiemposEntreNotas))) + " " + getTiempo(total), end="\r")
 	
