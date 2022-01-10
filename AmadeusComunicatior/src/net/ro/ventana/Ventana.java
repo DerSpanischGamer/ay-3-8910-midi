@@ -3,25 +3,34 @@ package net.ro.ventana;
 import net.ro.io.*;
 import net.ro.main.*;
 
+import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+@SuppressWarnings("serial")
 public class Ventana extends JFrame {
-	
+
 	private final preferences pref;
 	
 	private final JFrame frame;
@@ -33,23 +42,47 @@ public class Ventana extends JFrame {
 	private final helpButtons hb;
 	
 	// Main buttons
-	
-	private final JButton openCSV;
+
 	private final JButton openMIDI;
+	private final JButton openCSV;
 	private final JButton openAMDS;
 	
-	private static final int[][] button = {
-			{0, 0, 100, 25},
-			{0, 50, 100, 25},
-			{0, 100, 100, 25}
+	private static final int[][] selectButtonsDims = {
+			{100, 150, 125, 25},		// Select .mid
+			{100, 250, 125, 25},		// Select .csv
+			{100, 300, 125, 25}			// Select .amds
+	};
+
+	private final JButton midiCsv;
+	private final JButton midiAmds;
+	private final JButton csvAmds;
+	private final JButton play;
+	private final JButton stop;
+	private final JButton connect;
+	
+	private static final int[][] mainButtonsDims = {
+			{400, 125, 100, 25},	// .mid to .csv
+			{400, 175, 100, 25},	// .mid to .amds
+			{400, 250, 100, 25},	// .csv to .amds
+			{450, 350, 100, 25},	//	Play / Pause
+			{450, 400, 100, 25},	//	Stop
+			{450, 450, 100, 25},	//	Connect
 	};
 	
 	private final mainButtons mb;
 	
+	private final int thickness = 2;
+	private final int[][] separators = {
+			{0, 118, 600, thickness},		// LOGO / .mid
+			{0, 225, 600, thickness},		// .mid / .csv
+			{0, 287, 600, thickness},		// .csv / .amds
+			{0, 335, 600, thickness},		// .amds / controls
+			{10, 350, 430, 160}				// output
+	};
+	
 	// Otras variables
 	
 	private boolean preguntaCerrar = false;
-	
 	
 	public Ventana(preferences _pref) {
 		pref = _pref;
@@ -60,8 +93,9 @@ public class Ventana extends JFrame {
 		setResizable(false);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
-		setLayout(null);
-		
+        setLayout(null);
+        this.setOpacity(1);
+        
 		addWindowListener(new java.awt.event.WindowAdapter() {		// Funcion para cuando se cierre la ventana
 		    @Override
 		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -105,10 +139,12 @@ public class Ventana extends JFrame {
 		fileMenu.add(fileOpen);
 		fileMenu.add(fileSave);
 		fileMenu.add(fileSaveAs);
+		fileMenu.addSeparator();
 		fileMenu.add(filePreferences);
+		fileMenu.addSeparator();
 		fileMenu.add(fileExit);
 		
-		// Añadir las funciones - TODO : REHACER
+		// Añadir las funciones - TODO : REHACER CON LAS FUNCIONES QUE DE VERDAD HAY
 		
 		fb = new fileButtons();
 		
@@ -150,18 +186,22 @@ public class Ventana extends JFrame {
 		JMenu helpMenu = new JMenu("Help");			// Declarar nuevo menu
 		helpMenu.setMnemonic(KeyEvent.VK_H);
 		
+		JMenuItem helpTd = new JMenuItem("Tindie", KeyEvent.VK_T);
 		JMenuItem helpYT = new JMenuItem("Youtube", KeyEvent.VK_Y);
 		JMenuItem helpAbout = new JMenuItem("About", KeyEvent.VK_A);
 		
 		// Añadirlos al menu
 
+		helpMenu.add(helpTd);
 		helpMenu.add(helpYT);
+		helpMenu.addSeparator();
 		helpMenu.add(helpAbout);
 		
 		// Añadir las funciones
 		
 		hb = new helpButtons();
 
+		helpTd.addActionListener(hb);
 		helpYT.addActionListener(hb);
 		helpAbout.addActionListener(hb);
 		
@@ -178,17 +218,17 @@ public class Ventana extends JFrame {
 		mb = new mainButtons(pref, this);
 		
 		openMIDI = new JButton("Open midi file");
-		openMIDI.setBounds(button[0][0], button[0][1], button[0][2], button[0][3]);
+		openMIDI.setBounds(selectButtonsDims[0][0], selectButtonsDims[0][1], selectButtonsDims[0][2], selectButtonsDims[0][3]);
 		openMIDI.addActionListener(mb);
 		openMIDI.setVisible(true);
 		
 		openCSV = new JButton("Open csv file");
-		openCSV.setBounds(button[1][0], button[1][1], button[1][2], button[1][3]);
+		openCSV.setBounds(selectButtonsDims[1][0], selectButtonsDims[1][1], selectButtonsDims[1][2], selectButtonsDims[1][3]);
 		openCSV.addActionListener(mb);
 		openCSV.setVisible(true);
 		
 		openAMDS = new JButton("Open amds file");
-		openAMDS.setBounds(button[2][0], button[2][1], button[2][2], button[2][3]);
+		openAMDS.setBounds(selectButtonsDims[2][0], selectButtonsDims[2][1], selectButtonsDims[2][2], selectButtonsDims[2][3]);
 		openAMDS.addActionListener(mb);
 		openAMDS.setVisible(true);
 
@@ -196,6 +236,93 @@ public class Ventana extends JFrame {
 		add(openMIDI);
 		add(openAMDS);
 		
+		// --------------- Añadir botones ---------------
+		
+		midiCsv  = new JButton("To .csv");
+		midiCsv.setBounds(mainButtonsDims[0][0], mainButtonsDims[0][1], mainButtonsDims[0][2], mainButtonsDims[0][3]);
+		midiCsv.addActionListener(mb);
+		midiCsv.setVisible(true);
+		
+		midiAmds = new JButton("To .amds");
+		midiAmds.setBounds(mainButtonsDims[1][0], mainButtonsDims[1][1], mainButtonsDims[1][2], mainButtonsDims[1][3]);
+		midiAmds.addActionListener(mb);
+		midiAmds.setVisible(true);
+		
+		csvAmds = new JButton("To .amds");
+		csvAmds.setBounds(mainButtonsDims[2][0], mainButtonsDims[2][1], mainButtonsDims[2][2], mainButtonsDims[2][3]);
+		csvAmds.addActionListener(mb);
+		csvAmds.setVisible(true);
+		
+		play = new JButton("Play");
+		play.setBounds(mainButtonsDims[3][0], mainButtonsDims[3][1], mainButtonsDims[3][2], mainButtonsDims[3][3]);
+		play.addActionListener(mb);
+		play.setVisible(true);
+		
+		stop = new JButton("Stop");
+		stop.setBounds(mainButtonsDims[4][0], mainButtonsDims[4][1], mainButtonsDims[4][2], mainButtonsDims[4][3]);
+		stop.addActionListener(mb);
+		stop.setVisible(true);
+		
+		connect = new JButton("Connect");
+		connect.setBounds(mainButtonsDims[5][0], mainButtonsDims[5][1], mainButtonsDims[5][2], mainButtonsDims[5][3]);
+		connect.addActionListener(mb);
+		connect.setVisible(true);
+
+		add(midiCsv);
+		add(midiAmds);
+		add(csvAmds);
+		add(play);
+		add(stop);
+		add(connect);
+		
+		// ================== AÑADIR TEXTO E IMAGENES ==================
+
+		JLabel title = new JLabel();
+		title.setIcon(new ImageIcon("src/logo.png"));
+		title.setBounds(0, 0, 597, 125);
+		title.setVerticalAlignment(JLabel.NORTH);
+		title.addMouseListener(new AmadeusClick(frame));
+		
+		JLabel sep1 = new JLabel();
+		sep1.setBackground(Color.LIGHT_GRAY);
+		sep1.setOpaque(true);
+		sep1.setBounds(separators[0][0], separators[0][1], separators[0][2], separators[0][3]);
+
+		JLabel sep2 = new JLabel();
+		sep2.setBackground(Color.LIGHT_GRAY);
+		sep2.setOpaque(true);
+		sep2.setBounds(separators[1][0], separators[1][1], separators[1][2], separators[1][3]);
+		
+		JLabel sep3 = new JLabel();
+		sep3.setBackground(Color.LIGHT_GRAY);
+		sep3.setOpaque(true);
+		sep3.setBounds(separators[2][0], separators[2][1], separators[2][2], separators[2][3]);
+		
+		JLabel sep4 = new JLabel();
+		sep4.setBackground(Color.LIGHT_GRAY);
+		sep4.setOpaque(true);
+		sep4.setBounds(separators[3][0], separators[3][1], separators[3][2], separators[3][3]);
+		
+		JTextField cnsl = new JTextField();
+		cnsl.setEditable(false);
+		cnsl.setBackground(Color.WHITE);
+		cnsl.setBounds(separators[4][0], separators[4][1], separators[4][2], separators[4][3]);
+		
+		JLabel sgnt = new JLabel("RO ;P - 2022");
+		sgnt.setBounds(510, 515, 100, 10);
+		sgnt.setVerticalTextPosition(JLabel.NORTH);
+		
+        add(title);
+        
+        add(sep1);
+        add(sep2);
+		add(sep3);
+        add(sep4);
+		
+        add(cnsl);
+        
+        add(sgnt);
+        
 		setVisible(true);
 	}
 	
@@ -217,19 +344,39 @@ class loadButtons implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JMenuItem source = (JMenuItem) e.getSource();
-		System.out.println("Load " + source.getText());	
-		
+		System.out.println("Load " + source.getText());
 	}
 	
 }
 
 class helpButtons implements ActionListener {
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		JMenuItem source = (JMenuItem) e.getSource();
-		System.out.println("Help " + source.getText());
+		switch (((JMenuItem) e.getSource()).getText()) {
+		case "Tindie":
+			openLink("https://www.tindie.com/products/derspanischinventions/ym2149-midi-chiptune-synthesizer-amadeus-board/");
+		case "Youtube":
+			openLink("https://www.youtube.com/user/ROBERTO1OOO");
+			break;
+		case "About":
+			break;
+		default:
+			System.out.println("Unhandlded button " + ((JMenuItem) e.getSource()).getText());
+		}
 	}
 	
+	private void openLink(String url) {
+		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+		    try {
+				Desktop.getDesktop().browse(new URI(url));
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			} catch (URISyntaxException e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
 }
 
 class mainButtons implements ActionListener {
@@ -244,6 +391,7 @@ class mainButtons implements ActionListener {
 	// Handlers
 	private final midiHandler midH = new midiHandler();
 	private final csvHandler csvH =  new csvHandler();
+	private final amdsHandler amdsH = new amdsHandler();
 	
 	// Filtros
     private final FileNameExtensionFilter midFil = new FileNameExtensionFilter("MIDI Files", "mid");
@@ -267,30 +415,66 @@ class mainButtons implements ActionListener {
 		
 		switch (id) {	// TODO : AÑADIR FUNCIONES PARA TODOS ESTOS
 		case "Open midi file":
-	        fc.addChoosableFileFilter(midFil);
-	        returnVal = fc.showOpenDialog(frame);
-	        
-			if (returnVal == JFileChooser.APPROVE_OPTION) {
-	            File file = fc.getSelectedFile();
-	            midH.processNewFile(file);
-	            pref.setNewPath(file);
-			}
+			midH.processNewFile(getFile(midFil));
 			break;
 		case "Open csv file":
-	        fc.addChoosableFileFilter(csvFil);
-	        returnVal = fc.showOpenDialog(frame);
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-	            File file = fc.getSelectedFile();
-	            csvH.processNewFile(file);
-	            pref.setNewPath(file);
-			}
+			csvH.processNewFile(getFile(csvFil));
 			break;
 		case "Open amds file":
+			amdsH.processNewFile(getFile(amdsFil));
 			break;
 		default:
 			System.out.println("Unhandled button " + id);
 		}
-
-	        
 	}
+	
+	private File getFile(FileNameExtensionFilter ff) {
+		File file = null;
+		returnVal = fc.showOpenDialog(frame);
+		
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			file = fc.getSelectedFile();
+		}
+			
+		pref.setNewPath(file);
+		return file;
+	}
+}
+
+
+class AmadeusClick implements MouseListener {
+	private JFrame frame;
+	
+	public AmadeusClick(JFrame _frame) { frame = _frame; }
+
+	@Override
+	public void mouseClicked(MouseEvent arg0) {		// Silly Easter Egg that I like - Feeling cute, might add "Dark mode" later
+		frame.getContentPane().setBackground((frame.getContentPane().getBackground() == Color.DARK_GRAY) ? new Color(238, 238, 238) : Color.DARK_GRAY);
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
 }

@@ -56,8 +56,9 @@ public class preferences {
 	
 	// ----------- WRITING FUNCTIONS -----------
 	public void setNewPath(File file) {
-		musicPath = file.getAbsolutePath();
-		guardarConfiguracion();
+		musicPath = (file == null) ? "null" : file.getAbsolutePath();		// If something went wrong, a null file will come
+		if (file != null)				// If file not null
+			guardarConfiguracion();		// Safe
 	}
     
 	@SuppressWarnings("unchecked")
