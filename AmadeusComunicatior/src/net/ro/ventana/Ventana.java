@@ -1,5 +1,8 @@
 package net.ro.ventana;
 
+import net.ro.io.*;
+import net.ro.main.*;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -15,8 +18,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class Ventana extends JFrame {
+	
+	private final preferences pref;
 	
 	private final JFrame frame;
 	
@@ -45,7 +51,8 @@ public class Ventana extends JFrame {
 	private boolean preguntaCerrar = false;
 	
 	
-	public Ventana() {
+	public Ventana(preferences _pref) {
+		pref = _pref;
 		frame = this;
 		
 		setTitle("Amadeus");
@@ -168,7 +175,7 @@ public class Ventana extends JFrame {
 		
 		// =============== MAIN WINDOW ====================
 		
-		mb = new mainButtons(new JFileChooser(), this);
+		mb = new mainButtons(pref, this);
 		
 		openMIDI = new JButton("Open midi file");
 		openMIDI.setBounds(button[0][0], button[0][1], button[0][2], button[0][3]);
@@ -197,14 +204,7 @@ public class Ventana extends JFrame {
 	}
 }
 
-class fileButtons implements ActionListener, ItemListener {
-	
-	@Override
-	public void itemStateChanged(ItemEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
+class fileButtons implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JMenuItem source = (JMenuItem) e.getSource();
@@ -213,14 +213,7 @@ class fileButtons implements ActionListener, ItemListener {
 	
 }
 
-class loadButtons implements ActionListener, ItemListener {
-
-	@Override
-	public void itemStateChanged(ItemEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
+class loadButtons implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JMenuItem source = (JMenuItem) e.getSource();
@@ -230,14 +223,7 @@ class loadButtons implements ActionListener, ItemListener {
 	
 }
 
-class helpButtons implements ActionListener, ItemListener {
-
-	@Override
-	public void itemStateChanged(ItemEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
+class helpButtons implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		JMenuItem source = (JMenuItem) e.getSource();
@@ -247,36 +233,64 @@ class helpButtons implements ActionListener, ItemListener {
 }
 
 class mainButtons implements ActionListener {
-	// TOOD : FIX
 	
-	private final JFileChooser fc;
+	private final preferences pref;
 	private final JFrame frame;
 	
-	public mainButtons(JFileChooser _fc, JFrame _frame) {
-		fc = _fc;
+	private final JFileChooser fc;
+	
+	private int returnVal;
+	
+	// Handlers
+	private final midiHandler midH = new midiHandler();
+	private final csvHandler csvH =  new csvHandler();
+	
+	// Filtros
+    private final FileNameExtensionFilter midFil = new FileNameExtensionFilter("MIDI Files", "mid");
+    private final FileNameExtensionFilter csvFil = new FileNameExtensionFilter("CSV Files", "csv");
+    private final FileNameExtensionFilter amdsFil = new FileNameExtensionFilter("Amadeus Files", "amds");
+	
+	public mainButtons(preferences _pref, JFrame _frame) {
+		pref = _pref;
 		frame = _frame;
+		
+		fc = new JFileChooser();						// Create new instance of the file chooser
+		fc.setAcceptAllFileFilterUsed(false);			// It will always be filtered
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		if (pref.getMusicPath() != "null")
+			fc.setCurrentDirectory(new File(pref.getMusicPath()));
 		
-		String id = ((JButton) e.getSource()).getText();
+		String id = ((JButton) e.getSource()).getText();	// Get the text in the button to decide the action
 		
-		switch (id) {
+		switch (id) {	// TODO : AÑADIR FUNCIONES PARA TODOS ESTOS
 		case "Open midi file":
+	        fc.addChoosableFileFilter(midFil);
+	        returnVal = fc.showOpenDialog(frame);
+	        
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+	            File file = fc.getSelectedFile();
+	            midH.processNewFile(file);
+	            pref.setNewPath(file);
+			}
 			break;
 		case "Open csv file":
+	        fc.addChoosableFileFilter(csvFil);
+	        returnVal = fc.showOpenDialog(frame);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+	            File file = fc.getSelectedFile();
+	            csvH.processNewFile(file);
+	            pref.setNewPath(file);
+			}
 			break;
 		case "Open amds file":
 			break;
 		default:
 			System.out.println("Unhandled button " + id);
 		}
-	        int returnVal = fc.showOpenDialog(frame);
 
-	        if (returnVal == JFileChooser.APPROVE_OPTION) {
-	            File file = fc.getSelectedFile();
-	   }
+	        
 	}
-	
 }
