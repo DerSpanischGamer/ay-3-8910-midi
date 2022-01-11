@@ -5,23 +5,50 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import javax.swing.JFrame;
+
+import net.ro.ventana.Ventana;
+
 public class midiHandler {
 
+	Ventana v;
+	
 	File file;
 	String outFile;
 	
-	public midiHandler() {		
+	public midiHandler(Ventana _v) {v = _v;}
+	
+	public void reset() {
+		v.plyButtons(false);
+		v.midButtons(false);
+		
+		file = null;
+		outFile = null;
+		
+		v.setTitle("Amadeus");
 	}
 	
-	public void processNewFile(File _file) {
-		file = _file;
-	}
-	
-	public void toCsv() {
-		if (file.getAbsolutePath().isEmpty() || !file.getAbsolutePath().endsWith(".mid"))		// Error check
+	public void processNewFile(File _file) {	// Loads the file and awaits instructions on how to treat it
+		if (_file == null)
 			return;
 		
-		outFile = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".mid")) + ".csv";	// Create the output name
+		file = _file;
+		
+		outFile = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".mid"));	// Get the output file without extension
+		
+		v.setTitle("Amadeus - " + _file.getAbsolutePath() + " - mid");
+		v.setCnsl("MIDI loaded: " + _file.getAbsolutePath());
+		
+		v.plyButtons(false);
+		v.midButtons(true);
+		v.csvButtons(false);
+	}
+	
+	public void toCsv(File outF) {
+		if (outF == null || outF.getAbsolutePath().isEmpty() || !outF.getAbsolutePath().endsWith(".mid"))		// Error check
+			return;
+		
+		outFile = outF.getAbsolutePath();
 		
 		System.out.println(file.getAbsolutePath());
 		System.out.println(outFile);
@@ -50,7 +77,7 @@ public class midiHandler {
 			
 			int exitVal = process.waitFor();
 			if (exitVal == 0) {
-				System.out.println("Success");
+				
 				System.out.println(outSuc);
 			} else { 
 				System.out.println("lol, error");
@@ -58,14 +85,21 @@ public class midiHandler {
 			}
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return;
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+			return;
 		}
+		
+		// If we are here, everything has gone properly
 	}
 	
 	public void toAmds() {
 		
+	}
+	
+	public String getDir() {
+		return outFile;
 	}
 }

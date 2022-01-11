@@ -22,7 +22,16 @@ def relleno(n):
 	for i in range(n): combis.append([-1, -1])
 
 relleno(12)
-for i in range(150): # 150 es un valor arbitrario, pero representado el valor de la nota más alta en midi (?)
+for i in range(150): # 150 es un valor arbitrario, pero representa el valor de la nota más alta en midi (?)
 	combis.append(buscarFreq(base_freq*between_freq**i))
 
+print("Python : ")
 print(combis)
+
+temp = str(combis)	# Added support for Java
+
+print()
+print()
+print()
+print("Java : ")
+print(temp.replace('[', '{').replace(']', '}'))

@@ -1,6 +1,5 @@
 package net.ro.main;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -15,6 +14,8 @@ public class preferences {
 	// ------------- Data in the JSON -------------
 	private String musicPath;
 	private String version;
+	private char volumen;
+	private boolean preguntar;
 	
 	private FileWriter fw;
 	
@@ -25,6 +26,11 @@ public class preferences {
         	
         	musicPath = obj.get("musicPath").toString();
         	version = obj.get("version").toString();
+        	volumen = (char) Integer.parseInt(obj.get("volumen").toString());
+        	if (volumen > 15 || volumen <= 0)
+        		volumen = 10;
+        	preguntar = (boolean) obj.get("preguntar");
+        	
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -36,40 +42,45 @@ public class preferences {
 
 	// ----------- MUSIC PATH FUNCTIONS -----------
 	
-	public String getMusicPath() {
-		return musicPath;
-	}
+	public String getMusicPath() { return musicPath; }
 
-	public void setMusicPath(String musicPath) {
-		this.musicPath = musicPath;
-	}
+	public void setMusicPath(String musicPath) { this.musicPath = musicPath; }
 
 	// ----------- VERSION FUNCTIONS -----------
 	
-	public String getVersion() {
-		return version;
-	}
-
-	public void setVersion(String version) {
-		this.version = version;
-	}
+	public String getVersion() { return version; }
+	
+	// ----------- VOLUME FUNCTIONS -----------
+	
+	public char getVolume() { return volumen; }
+	
+	public void setVolume(char vol)  { volumen = vol; }
+	
+	// ----------- PREGUNTAR FUNCTIONS -----------
+	
+	public boolean getPreguntar() { return preguntar; }
+	
+	public void setPreguntar(boolean p) { preguntar = p; }
 	
 	// ----------- WRITING FUNCTIONS -----------
-	public void setNewPath(File file) {
-		musicPath = (file == null) ? "null" : file.getAbsolutePath();		// If something went wrong, a null file will come
-		if (file != null)				// If file not null
+	public void setNewPath(String dir) {
+		musicPath = dir;				// If something went wrong, a null file will come
+		if (dir != null)				// If file not null
 			guardarConfiguracion();		// Safe
 	}
     
 	@SuppressWarnings("unchecked")
-	private void guardarConfiguracion() {
+	public void guardarConfiguracion() {
 		JSONObject obj = new JSONObject();
+		
 		obj.put("musicPath", musicPath);
 		obj.put("version", version);
+		obj.put("volumen", (int) volumen);
+		obj.put("preguntar", preguntar);
 		
 		try {
 			fw = new FileWriter("src/preferences.json");
-			fw.write(obj.toJSONString());
+			fw.write(obj.toString());
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {

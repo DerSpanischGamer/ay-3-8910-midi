@@ -140,39 +140,37 @@ with open(archivo) as csv_file:
 	# Pasar por todo el archivo .csv
 	for row in csv_reader:
 		if (row[2] == " Header"): pulsos = int(row[5])	# Si es el Header, coger la información necesaria (los pulsos)
-		if (tempo == 0 and int(row[1]) == 0 and row[2] == " Tempo"): tempo = int(row[3])/(pulsos * 1000) # ms/clck para obtener ms multiplicar por el momento
-		
+		if (tempo == 0 and row[2] == " Tempo" and int(row[1]) == 0): tempo = int(row[3])/(pulsos * 1000) # ms/clck para obtener ms multiplicar por el momento
 		
 		if (row[2] == " Note_on_c"):
 			preNotas.append([int(row[1]) * tempo, 1, int(row[4])])
 		elif (row[2] == " Note_off_c"):
 			preNotas.append([int(row[1]) * tempo, 0, int(row[4])])
-		else: continue
 
 preNotasNP = np.asarray(preNotas) # Pasar el array preNotas a un array de Numpy
 preNotasNP.view('d,i8,i8').sort(axis = 0) # Ordenar el array con respecto a la columna 0 (tiempo)
 
-for nota in preNotasNP:
-	if (nota[1] == 1): anadirNota(nota[0], int(nota[2]))
-	else: quitarNota(nota[0], int(nota[2]))
-
 # Mirar si hay mas de 6 canales abiertos a la vez
-for nota in notas:
+for nota in preNotasNP:
 	if (nota[1] == 1): canalesUtilizados += 1
-	else:	canalesUtilizados -= 1
+	else: canalesUtilizados -= 1
 	
 	if (canalesUtilizados > 6):
 		print("En", nota[0], "se necesitarían", canalesUtilizados, "canales.")
 		preguntar = True
 
-# Calcular el tiempo sumando todos los tiempos entre notas
-for i in tiemposEntreNotas: total += i
-total /= 1000 # Pasar a segundos
-
 if (preguntar): # Preguntar si quiere continuar
 	if (input("El archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
 else:
 	input("Canción lista, dale a Enter para empezar. \n")
+
+for nota in preNotasNP:
+	if (nota[1] == 1): anadirNota(nota[0], int(nota[2]))
+	else: quitarNota(nota[0], int(nota[2]))
+
+# Calcular el tiempo sumando todos los tiempos entre notas
+for i in tiemposEntreNotas: total += i
+total /= 1000 # Pasar a segundos
 
 # Conexion serial
 with serial.Serial(puerto, 115200, timeout=1) as ser:
