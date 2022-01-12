@@ -15,6 +15,8 @@ import java.awt.event.AdjustmentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -23,6 +25,7 @@ import java.net.URISyntaxException;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -38,11 +41,13 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 @SuppressWarnings("serial")
-public class Ventana extends JFrame {
+public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAGES
 
 	private final preferences pref;
 	
 	private final JFrame frame;
+	
+	private final windowManager wm;
 	
 	// Menu bar buttons
 	
@@ -90,6 +95,12 @@ public class Ventana extends JFrame {
 	
 	private final JTextArea cnsl;		// Text console
 	
+	// Handlers
+	
+	private final midiHandler midH;
+	private final csvHandler csvH;
+	private final amdsHandler amdsH;
+	
 	// Menubar
 	
 	private final JMenu fileMenu;
@@ -111,25 +122,29 @@ public class Ventana extends JFrame {
 	
 	private JScrollBar prefVol;
 	private JCheckBox preguntar;
+	@SuppressWarnings("rawtypes")
+	private JComboBox modo;
+	
+	private final static String[] modos = {"Left-centered", "Center-centered", "Right-centered"};
 	
 	private JButton apply;
 	private JButton apExt;
 	private JButton exit;
 	
 	private int[][] prefBounds = {
-			{50, 60, 200, 15},			// Volume scrollbar
-			{50, 120, 300, 25},			// Checkbox
+			{125, 60, 200, 15},			// Volume scrollbar
+			{50, 110, 300, 20},			// Checkbox
 			{150, 200, 75, 25},			// Apply button
 			{250, 200, 125, 25},		// Apply and Exit button
 			{400, 200, 75, 25},			// Exit
 			{0, 50, 500, thickness},	// Title / volume
-			{0, 100, 500, thickness},	// volume / check
-			{0, 175, 500, thickness}	// check / buttons
+			{0, 100, 500, thickness},	// volume / preguntar
+			{0, 190, 500, thickness},	// mode / buttons
+			{125, 155, 300, 25},			// Mode
+			{0, 140, 500, thickness}	// preguntar / mode
 	};
 	
-	// Otras variables
-	
-	private boolean preguntaCerrar = false;
+	private final serialComunication sc;
 	
 	public Ventana(preferences _pref) {
 		pref = _pref;
@@ -141,24 +156,11 @@ public class Ventana extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
         setLayout(null);
-        this.setOpacity(1);
         
-		addWindowListener(new java.awt.event.WindowAdapter() {		// Funcion para cuando se cierre la ventana
-		    @Override
-		    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-		    	// TODO : PONER UNA FUNCION AQUI QUE SE ENCARGUE DE CERRARLO todo 
-		    	
-		    	if (preguntaCerrar) {
-			        if (JOptionPane.showConfirmDialog(frame, 
-			            "Are you sure you want to close this window?", "Close Window?", 
-			            JOptionPane.YES_NO_OPTION,
-			            JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
-			            System.exit(0);
-			        }
-			    }
-		    }
-		});
-		
+        wm = new windowManager(this);
+        
+        addWindowListener(wm);
+        
 		// --------------- Diseño del menu ---------------
 		
 		JMenuBar menubar = new JMenuBar();
@@ -184,8 +186,6 @@ public class Ventana extends JFrame {
 		fileMenu.add(filePreferences);
 		fileMenu.addSeparator();
 		fileMenu.add(fileExit);
-		
-		// Añadir las funciones - TODO : REHACER CON LAS FUNCIONES QUE DE VERDAD HAY
 		
 		fb = new fileButtons(this);
 		
@@ -347,28 +347,42 @@ public class Ventana extends JFrame {
         
         setUpPrefs();
         
+        // Initialize classes
+
+        csvH  = new csvHandler(this);
+        midH  = new midiHandler(this);
+        amdsH = new amdsHandler(this);
+        
+        sc = new serialComunication(this);
+        
 		setVisible(true);
 		
 		setCnsl("Welcome :)");
 	}
 	
-	private void setUpPrefs() {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void setUpPrefs() {		// TODO : AÑADIR MANERA DE ELEGIR EL MODO DE AUDIO
 		prefs = new JFrame("Preferences");
-		prefs.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		prefs.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		prefs.setSize(500, 300);
 		prefs.setLayout(null);
 		prefs.setLocationRelativeTo(frame);
 		
+		prefs.addWindowListener(wm);
+		
 		JLabel prefTitle = new JLabel("Preferences");
-		prefTitle.setBounds(0, 0, 150, 25);
-		prefTitle.setFont(new Font("Verdana", Font.PLAIN, 18));
+		prefTitle.setBounds(10, 10, 150, 25);
+		prefTitle.setFont(new Font("Verdana", Font.PLAIN, 25));
 		
 		JLabel vdLabel = new JLabel("Volume:");
-		vdLabel.setBounds(260, 55, 100, 25);
+		vdLabel.setBounds(50, 55, 100, 25);
 		
 		JLabel vlLabel = new JLabel(Integer.toString((int) pref.getVolume()));
-		vlLabel.setBounds(310, 55, 100, 25);
+		vlLabel.setBounds(100, 55, 100, 25);
 
+		JLabel mdLabel = new JLabel("Audio mode");
+		mdLabel.setBounds(50, 155, 100, 25);
+		
 		JLabel sep1 = new JLabel();
 		sep1.setOpaque(true);
 		sep1.setBackground(Color.LIGHT_GRAY);
@@ -384,7 +398,12 @@ public class Ventana extends JFrame {
 		sep3.setBackground(Color.LIGHT_GRAY);
 		sep3.setBounds(prefBounds[7][0], prefBounds[7][1], prefBounds[7][2], prefBounds[7][3]);
 		
-		ScrollBarList sc = new ScrollBarList(vlLabel);
+		JLabel sep4 = new JLabel();
+		sep4.setOpaque(true);
+		sep4.setBackground(Color.LIGHT_GRAY);
+		sep4.setBounds(prefBounds[9][0], prefBounds[9][1], prefBounds[9][2], prefBounds[9][3]);
+		
+		ScrollBarList sc = new ScrollBarList(this, vlLabel);
 		
 		prefVol = new JScrollBar(Adjustable.HORIZONTAL, pref.getVolume(), 1, 1, 16);
 		prefVol.addAdjustmentListener(sc);
@@ -392,6 +411,9 @@ public class Ventana extends JFrame {
 		
 		preguntar = new JCheckBox("Ask when more than 6 channels are used", null, pref.getPreguntar());
 		preguntar.setBounds(prefBounds[1][0], prefBounds[1][1], prefBounds[1][2], prefBounds[1][3]);
+		
+		modo = new JComboBox(modos);
+		modo.setBounds(prefBounds[8][0], prefBounds[8][1], prefBounds[8][2], prefBounds[8][3]);
 		
 		apply = new JButton("Apply");
 		apply.setBounds(prefBounds[2][0], prefBounds[2][1], prefBounds[2][2], prefBounds[2][3]);
@@ -402,16 +424,18 @@ public class Ventana extends JFrame {
 		exit = new JButton("Exit");
 		exit.setBounds(prefBounds[4][0], prefBounds[4][1], prefBounds[4][2], prefBounds[4][3]);
 		
-		preferencesButtons pb = new preferencesButtons(this);
-
 		prefs.add(prefTitle);
 		
 		prefs.add(vdLabel);
 		prefs.add(vlLabel);
+		prefs.add(mdLabel);
 
 		prefs.add(sep1);
 		prefs.add(sep2);
 		prefs.add(sep3);
+		prefs.add(sep4);
+		
+		preferencesButtons pb = new preferencesButtons(this);
 		
 		apply.addActionListener(pb);
 		apExt.addActionListener(pb);
@@ -419,21 +443,53 @@ public class Ventana extends JFrame {
 
 		prefs.add(prefVol);
 		prefs.add(preguntar);
-
+		prefs.add(modo);
+		
 		prefs.add(apply);
 		prefs.add(apExt);
 		prefs.add(exit);
 		
+		resetValues();
+		
 		prefs.setVisible(false);
 	}
 	
-	public void togglePrefs() { prefs.setVisible(!prefs.isVisible()); }
+	public void togglePrefs() { prefs.setVisible(!prefs.isVisible()); resetValues(); }
+
+	private void resetValues() {
+		prefVol.setValue((int) pref.getVolume());
+		preguntar.setSelected(pref.getPreguntar());
+		modo.setSelectedIndex(pref.getMode());
+	}
 	
 	public void applyChanges() {
+		csvH.setVolumen((char) prefVol.getValue());
+		csvH.setMode((char) modo.getSelectedIndex());
+		
 		pref.setVolume((char) prefVol.getValue());
 		pref.setPreguntar(preguntar.isSelected());
+		pref.setMode((char) modo.getSelectedIndex());
 		
 		pref.guardarConfiguracion();
+	}
+
+	public boolean checkPrefs() {
+		return !(prefVol.getValue() == (int) pref.getVolume()) || !(preguntar.isSelected() == pref.getPreguntar()) || !(modo.getSelectedIndex() == pref.getMode());
+	}
+
+	public void showPrefsDialog() {
+		int result = JOptionPane.showOptionDialog(prefs, "Are you sure you want to close preferences?", "Exit Preferences?",  JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Don't save", "Save", "Cancel"}, 2);
+		
+		switch(result) {
+		case JOptionPane.NO_OPTION:		// The user wants to save and exit
+			applyChanges();
+		case JOptionPane.YES_OPTION:	// The user doesn't want to save
+			togglePrefs();
+			break;
+		case JOptionPane.CANCEL_OPTION:	// The user made a terrible mistake and feels ashamed
+		default:
+			break;	// Do nothing, he will think about it :)
+		}
 	}
 	
 	public void midButtons(boolean b) { midiCsv.setEnabled(b); midiAmds.setEnabled(b); }
@@ -444,6 +500,51 @@ public class Ventana extends JFrame {
 	public void appCnsl(String txt) { cnsl.setText(cnsl.getText() + (cnsl.getText().isEmpty() ? "" : '\n') + txt); }
 	
 	public preferences getPreferences() { return pref; }
+	
+	public serialComunication getSerial() { return sc; }
+
+	public csvHandler  getCSV()  { return csvH;  }
+	public midiHandler getMIDI() { return midH;  }
+	public amdsHandler getAMDS() { return amdsH; }
+}
+
+class windowManager implements WindowListener {
+
+	private Ventana v;
+	
+	public windowManager(Ventana _v) { v = _v; }
+	
+	@Override
+	public void windowActivated(WindowEvent arg0) {}
+
+	@Override
+	public void windowClosed(WindowEvent e) {}
+
+	@Override
+	public void windowClosing(WindowEvent e) {		
+		switch(((JFrame) e.getSource()).getTitle()) {
+		case "Preferences":
+			if (v.checkPrefs())			// Preferences to save
+				v.showPrefsDialog();
+			else						// Nothing to save
+				v.togglePrefs();
+			break;
+		default:		// Main Window
+			// TODO : CHECK IF THE SONG IS PLAYING BEFORE CLOSING
+			break;	
+		}}
+
+	@Override
+	public void windowDeactivated(WindowEvent arg0) {}
+
+	@Override
+	public void windowDeiconified(WindowEvent arg0) {}
+
+	@Override
+	public void windowIconified(WindowEvent arg0) {}
+
+	@Override
+	public void windowOpened(WindowEvent arg0) {}
 }
 
 class fileButtons implements ActionListener {
@@ -461,6 +562,7 @@ class fileButtons implements ActionListener {
 				v.togglePrefs();
 				break;
 			case "Exit":
+				// TODO : EXIT PROCEDURE
 				break;
 			default:
 				v.appCnsl("Unhandled" + ((JMenuItem) e.getSource()).getText());			
@@ -472,12 +574,13 @@ class helpButtons implements ActionListener {
 	
 	private Ventana v;
 	
-	public helpButtons(Ventana _v) {v = _v;}
+	public helpButtons(Ventana _v) { v = _v; }
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch (((JMenuItem) e.getSource()).getText()) {
 		case "Help":
+			// TODO : HANDLE HELP
 			v.appCnsl("TODO : Handle Help");
 			break;
 		case "Tindie":
@@ -515,11 +618,6 @@ class mainButtons implements ActionListener {
 	
 	private int returnVal;
 	
-	// Handlers
-	private final midiHandler midH;
-	private final csvHandler csvH;
-	private final amdsHandler amdsH;
-	
 	// Filtros
     private final FileNameExtensionFilter midFil = new FileNameExtensionFilter("MIDI Files", "mid");
     private final FileNameExtensionFilter csvFil = new FileNameExtensionFilter("CSV Files", "csv");
@@ -527,10 +625,6 @@ class mainButtons implements ActionListener {
 	
 	public mainButtons(Ventana _v) {
 		v = _v;
-		
-		midH = new midiHandler(v);
-		csvH = new csvHandler(v);
-		amdsH = new amdsHandler(v);
 		
 		fc = new JFileChooser();						// Create new instance of the file chooser
 		fc.setAcceptAllFileFilterUsed(false);			// It will always be filtered
@@ -546,20 +640,37 @@ class mainButtons implements ActionListener {
 		
 		switch (id) {	// TODO : AÑADIR FUNCIONES PARA TODOS ESTOS
 		case "Open midi file":
-			midH.processNewFile(getFile(midFil, "Select a .mid file", true));
+			v.getMIDI().processNewFile(getFile(midFil, "Select a .mid file", true));
 			break;
 		case "Open csv file":
-			csvH.processNewFile(getFile(csvFil, "Select a .csv file", true));
+			v.getCSV().processNewFile(getFile(csvFil, "Select a .csv file", true));
 			break;
 		case "Open amds file":
-			amdsH.processNewFile(getFile(amdsFil, "Select a .amds file", true));
+			v.getAMDS().processNewFile(getFile(amdsFil, "Select a .amds file", true));
 			break;
 		case "To .csv":
-			fc.setSelectedFile(new File(midH.getDir() + ".csv"));	// Set the directory not to the last search but to the last file
-			midH.toCsv(getFile(csvFil, "Select a .csv file", false));
+			fc.setSelectedFile(new File(v.getMIDI().getDir() + ".csv"));	// Set the directory not to the last search but to the last file
+			v.getMIDI().toCsv(getFile(csvFil, "Select a .csv file", false));
 			break;
 		case "To .amds":
 			// TODO : CHECK IF IT COMES FROM .mid or .csv
+		case "Play":
+		case "Pause":
+			break;
+		case "Stop":
+			break;
+		case "Connect":
+			v.appCnsl("Attempting to connect...");
+			
+			if (v.getSerial().connectPort())
+				((JButton) e.getSource()).setText("Disconnect");	// If it has successfully connected, then change the button to say Disconnect
+			break;
+		case "Disconnect":
+			v.setCnsl("Disconnecting");
+			
+			if (v.getSerial().disconnectPort())
+				((JButton) e.getSource()).setText("Connect");		// If it has successfully connected then change the button to say Connect
+			break;
 		default:
 			System.out.println("Unhandled button " + id);
 		}
@@ -590,6 +701,7 @@ class mainButtons implements ActionListener {
 
 
 class AmadeusClick implements MouseListener {
+	
 	private Ventana v;
 	
 	public AmadeusClick(Ventana _v) { v = _v; }
@@ -621,10 +733,10 @@ class AmadeusClick implements MouseListener {
 }
 
 class ScrollBarList implements AdjustmentListener {
-
+	
 	private final JLabel label;
 	
-	public ScrollBarList(JLabel l) { label = l; }
+	public ScrollBarList(Ventana _v, JLabel l) { label = l; }
 	
 	@Override
 	public void adjustmentValueChanged(AdjustmentEvent e) {
@@ -633,11 +745,11 @@ class ScrollBarList implements AdjustmentListener {
 }
 
 class preferencesButtons implements ActionListener {
-
+	
 	private Ventana v;
 
 	public preferencesButtons(Ventana _v) { v = _v; }
-
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch(((JButton) e.getSource()).getText()) {
@@ -647,8 +759,10 @@ class preferencesButtons implements ActionListener {
 			v.applyChanges();
 			break;
 		case "Exit":
-			// TODO : IF HE WANTS TO EXIT
-			v.togglePrefs();
+			if (!v.checkPrefs())	// If the user hasn't touch anything, leave
+				v.togglePrefs();
+			else					// If not, ask
+				v.showPrefsDialog();
 			break;
 		default:
 			v.appCnsl("Unhandled button: " + ((JButton) e.getSource()).getText());

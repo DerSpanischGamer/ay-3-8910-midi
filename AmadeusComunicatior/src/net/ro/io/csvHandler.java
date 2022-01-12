@@ -5,9 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Comparator;
 
 import javax.swing.JOptionPane;
 
@@ -29,6 +27,14 @@ public class csvHandler {
 	private final static int[][] combis = {{-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}, {15, 209}, {14, 238}, {14, 24}, {13, 77}, {12, 142}, {11, 218}, {11, 47}, {10, 143}, {9, 247}, {9, 104}, {8, 224}, {8, 97}, {7, 232}, {7, 119}, {7, 12}, {6, 166}, {6, 71}, {5, 237}, {5, 151}, {5, 71}, {4, 251}, {4, 180}, {4, 112}, {4, 48}, {3, 244}, {3, 187}, {3, 134}, {3, 83}, {3, 35}, {2, 246}, {2, 203}, {2, 163}, {2, 125}, {2, 90}, {2, 56}, {2, 24}, {1, 250}, {1, 221}, {1, 195}, {1, 169}, {1, 145}, {1, 123}, {1, 101}, {1, 81}, {1, 62}, {1, 45}, {1, 28}, {1, 12}, {0, 253}, {0, 238}, {0, 225}, {0, 212}, {0, 200}, {0, 189}, {0, 178}, {0, 168}, {0, 159}, {0, 150}, {0, 142}, {0, 134}, {0, 126}, {0, 119}, {0, 112}, {0, 106}, {0, 100}, {0, 94}, {0, 89}, {0, 84}, {0, 79}, {0, 75}, {0, 71}, {0, 67}, {0, 63}, {0, 59}, {0, 56}, {0, 53}, {0, 50}, {0, 47}, {0, 44}, {0, 42}, {0, 39}, {0, 37}, {0, 35}, {0, 33}, {0, 31}, {0, 29}, {0, 28}, {0, 26}, {0, 25}, {0, 23}, {0, 22}, {0, 21}, {0, 19}, {0, 18}, {0, 17}, {0, 16}, {0, 15}, {0, 14}, {0, 14}, {0, 13}, {0, 12}, {0, 11}, {0, 11}, {0, 10}, {0, 9}, {0, 9}, {0, 8}, {0, 8}, {0, 7}, {0, 7}, {0, 7}, {0, 6}, {0, 6}, {0, 5}, {0, 5}, {0, 5}, {0, 4}, {0, 4}, {0, 4}, {0, 4}, {0, 3}, {0, 3}, {0, 3}, {0, 3}, {0, 3}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 2}, {0, 1}, {0, 1}, {0, 1}, {0, 1}, {0, 1}, {0, 1}, {0, 1}};
 	
 	private int pulsos = 24;						// Pulses per ms (normally 24)
+	
+	private char mode = 0;			// Sound mode
+	private char[][] canales = {					// CHIP 1 : [  0  |  1  |  2  ]    CHIP 2 : [  3  |  4  |  5  ]
+			{0, 1, 2, 3, 4, 5},		// First come first served 			(left-ear-heavy)
+			{2, 3, 4, 1, 0, 5},		// Centralized sound 	   			(should sond more centered)
+			{5, 4, 3, 2, 1, 0}		// idk, just want to experiment		(right-ear-heavy ?) should be the opposite of the first case
+	};
+	
 	private int[] dispo = {-1, -1, -1, -1, -1, -1};	// Available channels
 	private double tempo;							// Stores the ms / pulso ; to get ms multiply times pulsos
 	
@@ -42,24 +48,39 @@ public class csvHandler {
 	private int ultimaVez;							// Stores the last time interval in order to compute the difference
 	private char volumen = 10;						// Stores the volume (in value of register) of the boards
 	
+	// TODO : notas y tiempoEntreNotas pueden ser transformados en arrays
+	
+	private int[][] notasInt;						// preNotas is a List and notasInt is an array: new boss, same as the old one
 	private List<char[]> notas;						// Saves the notes to send : {chip , register , value}
 	private List<Integer> tiempoEntreNotas;			// Saves the time to wait between notes
 	
 	public csvHandler(Ventana _v) {
 		v = _v;
+		
 		volumen = v.getPreferences().getVolume();
+		mode = v.getPreferences().getMode();
 	}
 	
 	public void reset() {
 		v.csvButtons(false);
 		v.plyButtons(false);
+		v.midButtons(false);
+		
+		// Reset files variables
 		
 		file = null;
 		
 		reader = null;
-		line = null;
+		line = "";
 	
 		lista = null;
+		
+		// Reset treatment variables
+		
+		preNotas = null;
+		
+		notas = null;
+		tiempoEntreNotas = null;
 		
 		v.setTitle("Amadeus");
 	}
@@ -68,8 +89,8 @@ public class csvHandler {
 		if (_file == null)
 			return;
 		
-		line = "";
-		reader = null;
+		reset();
+		
 		lista = new ArrayList<String[]>();
 		
 		file = _file.getAbsolutePath();
@@ -94,18 +115,12 @@ public class csvHandler {
 			}
 		}
 		
-		// If we are here is bcs the two trys have been successfull
-		
-		v.plyButtons(true);
-		v.midButtons(false);
-		v.csvButtons(true);
-		
 		v.setTitle("Amadeus - " + file + " - csv");
 	
 		csvArray();
 	}
 	
-	private char getAvailableChannel() {					// Returns the first available channel ; TODO : THIS KIND OF SEARCH MAKES THE FIRST CHIP MORE USED - SOLUTION : DEVELOP AN ALGO THAT PLACES THE LOAD ONTO THE "CENTRAL" CHANNELS AND GOES EXTERNALLY OUT
+	private char getAvailableChannel() {
 		for (char i = 0; i < dispo.length; i++) {
 			if (dispo[i] == -1)
 				return i;
@@ -132,7 +147,7 @@ public class csvHandler {
 		if (posicion == -1 || combis[nota][0] == -1)
 			return;		// If no available channel or the note yields an unplayable value, then don't add it
 		
-		char chip  = (char) (posicion / 3);
+		char chip  = canales[mode][posicion];
 		char canal = (char) (posicion % 3);
 		
 		tiempoEntreNotas.add(diff);		// Add the time to wait since the last note
@@ -148,7 +163,7 @@ public class csvHandler {
 		notas.add(new char[] {chip, (char) (canal + 8), volumen});
 	}
 	
-	private void quitarNote(int time, int nota) {
+	private void quitarNota(int time, int nota) {
 		int diff = time - ultimaVez;
 		if (diff < 0)
 			return;		// Sanity check
@@ -163,7 +178,7 @@ public class csvHandler {
 		
 		dispo[posicion] = -1;
 		
-		notas.add(new char[] {(char) (posicion / 3), (char) ((posicion % 3) + 8), 0});		// Mute the channel
+		notas.add(new char[] { canales[mode][posicion], (char) ((posicion % 3) + 8), 0});		// Mute the channel
 	}
 	
 	private void csvArray() {	// Reads the csv in detail and stores in order to be ready to be send
@@ -197,14 +212,14 @@ public class csvHandler {
 			
 			// All the notes have been extracted, it's time to start processing
 			
-			int[][] arr = getArray(preNotas);						// List to array
+			notasInt = getArray(preNotas);							// List to array
 			
-			Arrays.sort(arr, (a, b) -> Integer.compare(a[0], b[0]));
+			Arrays.sort(notasInt, (a, b) -> Integer.compare(a[0], b[0]));	// Sort the array by their time stamp
 			
 			char maxCanals = 0;
 			
 			// Channel check
-			for (int[] row : arr) {
+			for (int[] row : notasInt) {
 				if (row[1] == 1)
 					canalesUtilizados++;
 				else
@@ -218,6 +233,12 @@ public class csvHandler {
 				}
 			}
 			
+			if (canalesUtilizados != 0) {
+				v.setCnsl("Operation failed");
+				file = null;
+				return;
+			}
+			
 			// If more than 6 channels are used in parallel, the user is asked if we wishes to continue or not
 			if (maxCanales && JOptionPane.showConfirmDialog(v, 
 		            (int) maxCanals + " channels would be needed. \n The file may not play properly due to this. \n Do you want to continue?", "Continue?", 
@@ -226,8 +247,10 @@ public class csvHandler {
 		            	arrayValues();
 			else if (!maxCanales)
 				arrayValues();		// If no more than 6 channels, we continue too
-			else
-				return;
+			else {
+				v.setCnsl("Operation cancelled.");
+				return;				// If the user doesn't accept the channels then exit
+			}
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 			v.appCnsl("Error processing csv file");
@@ -235,7 +258,20 @@ public class csvHandler {
 	}
 	
 	private void arrayValues() {
+		// If we are here is bcs we playing them tunes
 		
+		// Enable the buttons that are actually necesary
+		
+		v.plyButtons(true);
+		v.midButtons(false);
+		v.csvButtons(true);
+		
+		for (int[] tone : notasInt) {
+			if (tone[1] == 1)
+				addNote(tone[0], tone[3]);
+			else
+				quitarNota(tone[0], tone[3]);
+		}
 	}
 	
 	private int[][] getArray(List<Integer[]> list) {
@@ -250,11 +286,20 @@ public class csvHandler {
 	
 	// Volume management
 	
-	public char getVolumen() { return volumen; }
-	
 	public void setVolumen(char v) { volumen = v; }
 	
-	public void getSongSize() {	// TODO : RETURN AN INT WITH THE SECONDS ?
+	public void setMode(char c) { mode = c; }
+	
+	public int getSongSize() {
+		if (tiempoEntreNotas != null) {
+			int suma = 0;
+			
+			for (int t : tiempoEntreNotas)
+				suma += t;
+			
+			return (int) Math.round(suma * tempo * pulsos);
+		}
 		
+		return -1;
 	}
 }

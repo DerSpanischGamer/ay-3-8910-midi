@@ -16,6 +16,8 @@ public class preferences {
 	private String version;
 	private char volumen;
 	private boolean preguntar;
+	private String preferedPort;
+	private char mode;
 	
 	private FileWriter fw;
 	
@@ -30,6 +32,8 @@ public class preferences {
         	if (volumen > 15 || volumen <= 0)
         		volumen = 10;
         	preguntar = (boolean) obj.get("preguntar");
+        	preferedPort = obj.get("preferedPort").toString();
+        	mode = (char) Integer.parseInt(obj.get("mode").toString());
         	
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -62,7 +66,20 @@ public class preferences {
 	
 	public void setPreguntar(boolean p) { preguntar = p; }
 	
+	// ----------- PORT FUNCTIONS -----------
+	
+	public String getPreferedPort() { return preferedPort; }
+	
+	public void setPreferedPort(String s) { preferedPort = s; }
+	
+	// ----------- MODE FUNCTIONS -----------
+	
+	public char getMode() { return mode; }
+	
+	public void setMode(char c) { mode = c; }
+	
 	// ----------- WRITING FUNCTIONS -----------
+	
 	public void setNewPath(String dir) {
 		musicPath = dir;				// If something went wrong, a null file will come
 		if (dir != null)				// If file not null
@@ -77,6 +94,8 @@ public class preferences {
 		obj.put("version", version);
 		obj.put("volumen", (int) volumen);
 		obj.put("preguntar", preguntar);
+		obj.put("preferedPort", preferedPort);
+		obj.put("mode", (int) mode);
 		
 		try {
 			fw = new FileWriter("src/preferences.json");
