@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import javax.swing.JFrame;
-
 import net.ro.ventana.Ventana;
 
 public class midiHandler {
@@ -96,7 +94,7 @@ public class midiHandler {
 	}
 	
 	public void toAmds() {
-		
+		// TODO : DO
 	}
 	
 	public String getDir() {

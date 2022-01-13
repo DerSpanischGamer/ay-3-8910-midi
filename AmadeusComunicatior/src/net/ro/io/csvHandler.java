@@ -9,6 +9,7 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import net.ro.io.serialComunication.incoming;
 import net.ro.ventana.Ventana;
 
 public class csvHandler {
@@ -48,10 +49,8 @@ public class csvHandler {
 	private int ultimaVez;							// Stores the last time interval in order to compute the difference
 	private char volumen = 10;						// Stores the volume (in value of register) of the boards
 	
-	// TODO : notas y tiempoEntreNotas pueden ser transformados en arrays
-	
 	private int[][] notasInt;						// preNotas is a List and notasInt is an array: new boss, same as the old one
-	private List<char[]> notas;						// Saves the notes to send : {chip , register , value}
+	private List<char[]> notas;							// Saves the notes to send : {chip , register , value}
 	private List<Integer> tiempoEntreNotas;			// Saves the time to wait between notes
 	
 	public csvHandler(Ventana _v) {
@@ -81,6 +80,10 @@ public class csvHandler {
 		
 		notas = null;
 		tiempoEntreNotas = null;
+		
+		// Reset external things
+		
+		v.getSerial().setEstado(null);
 		
 		v.setTitle("Amadeus");
 	}
@@ -120,22 +123,22 @@ public class csvHandler {
 		csvArray();
 	}
 	
-	private char getAvailableChannel() {
+	private int getAvailableChannel() {
 		for (char i = 0; i < dispo.length; i++) {
 			if (dispo[i] == -1)
 				return i;
 		}
 		
-		return (char) -1;
+		return -1;
 	}
 	
-	private char getChannel(int nota) {						// Returns the channel that is playing the note nota
+	private int getChannel(int nota) {						// Returns the channel that is playing the note nota
 		for (char i = 0; i < dispo.length; i++) {
-			if (dispo[i] == -1)
+			if (dispo[i] == nota)
 				return i;
 		}
 		
-		return (char) -1;
+		return -1;
 	}
 	
 	private void addNote(int time, int nota) {
@@ -143,7 +146,7 @@ public class csvHandler {
 		if (diff < 0)
 			return;		// Sanity check
 		
-		char posicion = getAvailableChannel();
+		int posicion = getAvailableChannel();
 		if (posicion == -1 || combis[nota][0] == -1)
 			return;		// If no available channel or the note yields an unplayable value, then don't add it
 		
@@ -168,7 +171,7 @@ public class csvHandler {
 		if (diff < 0)
 			return;		// Sanity check
 		
-		char posicion = getChannel(nota);
+		int posicion = getChannel(nota);
 		if (posicion == -1)
 			return;		// Second sanity check
 		
@@ -260,6 +263,8 @@ public class csvHandler {
 	private void arrayValues() {
 		// If we are here is bcs we playing them tunes
 		
+		v.getSerial().setEstado(incoming.CSV);
+		
 		// Enable the buttons that are actually necesary
 		
 		v.plyButtons(true);
@@ -268,9 +273,9 @@ public class csvHandler {
 		
 		for (int[] tone : notasInt) {
 			if (tone[1] == 1)
-				addNote(tone[0], tone[3]);
+				addNote(tone[0], tone[2]);
 			else
-				quitarNota(tone[0], tone[3]);
+				quitarNota(tone[0], tone[2]);
 		}
 	}
 	
@@ -289,6 +294,10 @@ public class csvHandler {
 	public void setVolumen(char v) { volumen = v; }
 	
 	public void setMode(char c) { mode = c; }
+	
+	public List<char[]> getNotas() { return notas; }
+	
+	public List<Integer> getTiempos() { return tiempoEntreNotas; }
 	
 	public int getSongSize() {
 		if (tiempoEntreNotas != null) {

@@ -361,7 +361,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void setUpPrefs() {		// TODO : AÑADIR MANERA DE ELEGIR EL MODO DE AUDIO
+	private void setUpPrefs() {
 		prefs = new JFrame("Preferences");
 		prefs.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		prefs.setSize(500, 300);
@@ -496,6 +496,8 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	public void csvButtons(boolean b) { csvAmds.setEnabled(b); }
 	public void plyButtons(boolean b) { play.setEnabled(b);  stop.setEnabled(b); }
 	
+	public void togglePlay() { play.setText(play.getText().equals("Play") ? "Pause" : "Play"); }
+	
 	public void setCnsl(String txt) { cnsl.setText(txt); }
 	public void appCnsl(String txt) { cnsl.setText(cnsl.getText() + (cnsl.getText().isEmpty() ? "" : '\n') + txt); }
 	
@@ -530,7 +532,6 @@ class windowManager implements WindowListener {
 				v.togglePrefs();
 			break;
 		default:		// Main Window
-			// TODO : CHECK IF THE SONG IS PLAYING BEFORE CLOSING
 			break;	
 		}}
 
@@ -655,7 +656,10 @@ class mainButtons implements ActionListener {
 		case "To .amds":
 			// TODO : CHECK IF IT COMES FROM .mid or .csv
 		case "Play":
+			v.getSerial().play();
+			break;
 		case "Pause":
+			v.getSerial().pause();
 			break;
 		case "Stop":
 			break;
