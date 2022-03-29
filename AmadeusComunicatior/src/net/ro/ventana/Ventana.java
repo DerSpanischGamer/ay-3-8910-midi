@@ -173,9 +173,9 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		fileMenu.setMnemonic(KeyEvent.VK_F);
 		
 		fileOpen = new JMenuItem("Open", KeyEvent.VK_O);
-		fileOpen.setAccelerator(KeyStroke.getKeyStroke(
-		        KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+		fileOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 		filePreferences = new JMenuItem("Preferences", KeyEvent.VK_P);
+		filePreferences.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, ActionEvent.CTRL_MASK));
 		fileExit = new JMenuItem("Exit", KeyEvent.VK_E);
 		fileExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
 		
@@ -361,8 +361,9 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private void setUpPrefs() {
+	private void setUpPrefs() {		// It is only executed once when the main window is started
 		prefs = new JFrame("Preferences");
+		
 		prefs.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		prefs.setSize(500, 300);
 		prefs.setLayout(null);
@@ -377,7 +378,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		JLabel vdLabel = new JLabel("Volume:");
 		vdLabel.setBounds(50, 55, 100, 25);
 		
-		JLabel vlLabel = new JLabel(Integer.toString((int) pref.getVolume()));
+		JLabel vlLabel = new JLabel(String.valueOf((int) pref.getVolume()));
 		vlLabel.setBounds(100, 55, 100, 25);
 
 		JLabel mdLabel = new JLabel("Audio mode");
@@ -496,6 +497,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	public void csvButtons(boolean b) { csvAmds.setEnabled(b); }
 	public void plyButtons(boolean b) { play.setEnabled(b);  stop.setEnabled(b); }
 	
+	public void setPlay()    { play.setText("Play"); } // Set to a know position
 	public void togglePlay() { play.setText(play.getText().equals("Play") ? "Pause" : "Play"); }
 	
 	public void setCnsl(String txt) { cnsl.setText(txt); }
@@ -662,6 +664,7 @@ class mainButtons implements ActionListener {
 			v.getSerial().pause();
 			break;
 		case "Stop":
+			v.getSerial().stop();
 			break;
 		case "Connect":
 			v.appCnsl("Attempting to connect...");
@@ -758,7 +761,9 @@ class preferencesButtons implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		switch(((JButton) e.getSource()).getText()) {
 		case "Apply and Exit":
+			v.applyChanges();
 			v.togglePrefs();
+			break;
 		case "Apply":
 			v.applyChanges();
 			break;

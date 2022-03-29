@@ -30,6 +30,10 @@ public class midiHandler {
 		if (_file == null)
 			return;
 		
+		reset();
+		v.getCSV().reset();
+		v.getAMDS().reset();
+		
 		file = _file;
 		
 		outFile = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".mid"));	// Get the output file without extension
@@ -72,14 +76,14 @@ public class midiHandler {
 			while((line = readSuc.readLine()) != null) { outSuc.append(line + '\n'); }
 			while((line = readErr.readLine()) != null) { outErr.append(line + '\n'); }
 			
-			
 			int exitVal = process.waitFor();
-			if (exitVal == 0) {
-				
+			if (exitVal == 0) {	// Success => go to csvHandler
+				v.appCnsl("mid successfully transformed in csv");
 				System.out.println(outSuc);
-			} else { 
-				System.out.println("lol, error");
-				System.out.println(outErr);
+				
+			} else {
+				v.setCnsl("Error transforming mid to csv");
+				v.appCnsl(outErr.toString());
 			}
 			
 		} catch (IOException e) {
@@ -94,7 +98,7 @@ public class midiHandler {
 	}
 	
 	public void toAmds() {
-		// TODO : DO
+		// TODO : OK, HEAR ME OUT, WE GO FROM MID TO CSV, CSV TO AMDS, AND THEN WE DELETE CSV
 	}
 	
 	public String getDir() {

@@ -9,7 +9,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import net.ro.ventana.Ventana;
+
 public class preferences {
+	
+	private Ventana v;
 	
 	// ------------- Data in the JSON -------------
 	private String musicPath;
@@ -19,18 +23,17 @@ public class preferences {
 	private String preferedPort;
 	private char mode;
 	
-	private FileWriter fw;
-	
 	public preferences() {	// Initializes the preferences
-        try
+		try
         {
         	JSONObject obj = (JSONObject) new JSONParser().parse(new FileReader("src/preferences.json"));	//JSON parser object to parse read file
         	
         	musicPath = obj.get("musicPath").toString();
         	version = obj.get("version").toString();
         	volumen = (char) Integer.parseInt(obj.get("volumen").toString());
-        	if (volumen > 15 || volumen <= 0)
+        	if (volumen > 15 || volumen <= 0)	// Sanity check
         		volumen = 10;
+        	
         	preguntar = (boolean) obj.get("preguntar");
         	preferedPort = obj.get("preferedPort").toString();
         	mode = (char) Integer.parseInt(obj.get("mode").toString());
@@ -44,6 +47,8 @@ public class preferences {
 		}
 	}
 
+	public void addVentana(Ventana _v) { v = _v; }
+	
 	// ----------- MUSIC PATH FUNCTIONS -----------
 	
 	public String getMusicPath() { return musicPath; }
@@ -88,22 +93,30 @@ public class preferences {
     
 	@SuppressWarnings("unchecked")
 	public void guardarConfiguracion() {
-		JSONObject obj = new JSONObject();
-		
-		obj.put("musicPath", musicPath);
-		obj.put("version", version);
-		obj.put("volumen", (int) volumen);
-		obj.put("preguntar", preguntar);
-		obj.put("preferedPort", preferedPort);
-		obj.put("mode", (int) mode);
-		
+		FileWriter fw = null;
 		try {
 			fw = new FileWriter("src/preferences.json");
+
+			JSONObject obj = new JSONObject();
+			
+			obj.put("musicPath", musicPath);
+			obj.put("version", version);
+			obj.put("volumen", (int) volumen);
+			obj.put("preguntar", preguntar);
+			obj.put("preferedPort", preferedPort);
+			obj.put("mode", (int) mode);
+			
 			fw.write(obj.toString());
+			
+			v.appCnsl("Preferences saved");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			try {
+				if (fw == null) {
+					v.appCnsl("Couldn't save preferences");
+					return;
+				}
 				fw.flush();
 				fw.close();
 			} catch (IOException e) {

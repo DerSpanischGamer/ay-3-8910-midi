@@ -14,7 +14,7 @@ public class amdsHandler {
 	
 	public amdsHandler(Ventana _v) { v = _v; }
 	
-	public void clean() {
+	public void reset() {
 		v.setTitle("Amadeus");
 		// TODO : SET TO NULL ALL VARIABLES
 	}
@@ -22,6 +22,9 @@ public class amdsHandler {
 	public void processNewFile(File file) {
 		if (file == null)
 			return;
+		
+		v.getMIDI().reset();
+		v.getCSV().reset();
 		
 		// TODO : LOAD amds FILE
 	}

@@ -21,7 +21,7 @@ public class serialComunication {
 
 	// Player variables
 	
-	private sender s;
+	private sender s = null;
 	
 	public enum incoming { CSV, AMDS };
 	private incoming estado = null;
@@ -57,7 +57,10 @@ public class serialComunication {
 						v.setCnsl("Couldn't open the port" + port.getSystemPortName());
 					else {
 						v.appCnsl("Connected to port : " + port.getSystemPortName());
-						puerto = port; 
+						puerto = port;
+
+					    puerto.setComPortParameters(115200, 8, 1, 0); // default connection settings for Arduino
+					    puerto.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0); // block until bytes can be written
 						return true;
 					}
 				}
@@ -95,19 +98,19 @@ public class serialComunication {
 		return false;	// No port to close, return false
 	}
 	
-	public void play() {	// TODO : DIFFERENTIATE IF ITS THE FIRST TIME OR PAUSED
-		/*if (estado == null || playing || puerto == null || !puerto.isOpen())
-			return;*/
-
-		v.togglePlay();
-		
-		if (paused) {
+	public void play() {
+		if (playing) { // This means the song has already started playing, therefore we need to pause the song
 			s.sendMsgThread("play");
 			paused = false;
+			
 			return;
 		}
 		
-		// If we are here, we're starting the song from the beginning: i.e. new Thread and all
+		// If we're here, it means that it is the first time playing play
+		if (estado == null || puerto == null || !puerto.isOpen())
+			return;
+
+		v.togglePlay();
 		
 		playing = true;
 		paused = false;
@@ -116,10 +119,11 @@ public class serialComunication {
 			s = new sender(puerto, v.getCSV().getNotas(), v.getCSV().getTiempos());
 		else			// Amadeus
 			System.out.println("Play amds file");
+		
 		s.start();
 	}
 	
-	public void pause() {
+	public void pause() {	// Start playing the song again
 		if (estado == null || !playing || paused || s == null)
 			return;
 		
@@ -130,10 +134,11 @@ public class serialComunication {
 		s.sendMsgThread("pause");
 	}
 	
-	public void stop() {
+	public void stop() {	// Stop playing the song
 		if (estado == null || !playing || s == null || !v.getSerial().isConnected())
 			return;
-		
+
+		v.setPlay();
 		s.sendMsgThread("stop");	// This should kill the Thread	
 		
 		s = null;
@@ -167,38 +172,45 @@ class sender extends Thread {
 	
 	public void run() {
 		boolean play = true;
+		boolean stop = false;
 	    String msg = "";
 		
 	    int index = 0;
 	    
-		while(true) {
+		while(!stop) {
 			while(play) {
 				try {
+					char[] i = notas.get(index);
+					//System.out.println((int) i[0] + " " + (int) i[1] + " " + (int) i[2]);
+					Thread.sleep((int) tiempoEntre.get(index));
 					puerto.writeBytes(new byte[] {(byte) notas.get(index)[0], (byte) notas.get(index)[1], (byte) notas.get(index)[2]}, 3);
-					// TODO : ENVIA LAS NOTAS EN EL BUEN MOMENTO PERO NO SUENA NADA
-					Thread.sleep(tiempoEntre.get(index));
+					
+					index++;
+					
+					while ((msg = queue.poll()) != null) {		// Check if there are new commands
+				    	
+						switch(msg) {
+							case "pause":
+								play = false;
+								break;
+							case "stop":
+								play = false;
+								stop = true;
+							default:
+								System.out.println("Unhandled msg for sender " + msg);
+								break;
+				     	}
+					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				
-				index++;
-				
-				while ((msg = queue.poll()) != null) {
-			    	
-					switch(msg) {
-					case "play":
-						play = true;
-						break;
-					case "pause":
-						play = false;
-						break;
-					case "stop":
-						return;
-					default:
-						System.out.println("Unhandled msg for sender " + msg);
-						break;
-			     	}
-				}
+			}
+			
+			while((msg = queue.poll()) != null) {	// Once we are paused, check if there are more messages like start or stop
+				if (msg == "stop")
+					stop = true;
+				else if (msg == "play")
+					play = true;
 			}
 		}
 	}

@@ -93,6 +93,8 @@ public class csvHandler {
 			return;
 		
 		reset();
+		v.getMIDI().reset();
+		v.getAMDS().reset();
 		
 		lista = new ArrayList<String[]>();
 		
@@ -150,8 +152,9 @@ public class csvHandler {
 		if (posicion == -1 || combis[nota][0] == -1)
 			return;		// If no available channel or the note yields an unplayable value, then don't add it
 		
-		char chip  = canales[mode][posicion];
-		char canal = (char) (posicion % 3);
+		char realPosicion = canales[mode][posicion];
+		char chip  = (char) (realPosicion / 3);
+		char canal = (char) (realPosicion % 3);
 		
 		tiempoEntreNotas.add(diff);		// Add the time to wait since the last note
 		tiempoEntreNotas.add(0);
@@ -181,7 +184,9 @@ public class csvHandler {
 		
 		dispo[posicion] = -1;
 		
-		notas.add(new char[] { canales[mode][posicion], (char) ((posicion % 3) + 8), 0});		// Mute the channel
+		char realPosicion = canales[mode][posicion];
+		
+		notas.add(new char[] { (char) (realPosicion / 3), (char) ((realPosicion % 3) + 8), 0});		// Mute the channel
 	}
 	
 	private void csvArray() {	// Reads the csv in detail and stores in order to be ready to be send
@@ -237,13 +242,13 @@ public class csvHandler {
 			}
 			
 			if (canalesUtilizados != 0) {
-				v.setCnsl("Operation failed");
+				v.setCnsl("Operation failed, there are still " + Integer.toString((int) canalesUtilizados) + " channels opened");
 				file = null;
 				return;
 			}
 			
 			// If more than 6 channels are used in parallel, the user is asked if we wishes to continue or not
-			if (maxCanales && JOptionPane.showConfirmDialog(v, 
+			if (v.getPreferences().getPreguntar() && maxCanales && JOptionPane.showConfirmDialog(v, 
 		            (int) maxCanals + " channels would be needed. \n The file may not play properly due to this. \n Do you want to continue?", "Continue?", 
 		            JOptionPane.YES_NO_OPTION,
 		            JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
@@ -251,7 +256,7 @@ public class csvHandler {
 			else if (!maxCanales)
 				arrayValues();		// If no more than 6 channels, we continue too
 			else {
-				v.setCnsl("Operation cancelled.");
+				v.setCnsl("Operation cancelled, not enough channels to play the song.");
 				return;				// If the user doesn't accept the channels then exit
 			}
 		} catch (NumberFormatException e) {
@@ -287,6 +292,10 @@ public class csvHandler {
 				array[i][j] = list.get(i)[j];
 		
 		return array;
+	}
+	
+	public void toAmds() {
+		// TODO : DO
 	}
 	
 	// Volume management
