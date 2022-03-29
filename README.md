@@ -59,8 +59,9 @@ Alright, we are at the .py files that are interesting:
 The way it stores data is the following:
 
 'INFOS,BPM,CHIP
+
 TIMESTAMP,VAL,VAL,VAL...
-TIME STAMP, VAL, VAL,VAL...
+TIMESTAMP,VAL,VAL,VAL...
 ...'
 
 where INFOS is a string that never changes, BPM is the BPM of the song and CHIP is the number of chips that are needed to play the song.

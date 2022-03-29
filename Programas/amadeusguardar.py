@@ -144,19 +144,29 @@ with open(archivo) as csv_file:
 			preNotas.append([int(row[1]), 1, int(row[4])])
 		elif (row[2] == " Note_off_c"):
 			preNotas.append([int(row[1]), 0, int(row[4])])
-		else: continue
 
-preNotasNP = np.asarray(preNotas) 			# Pasar el array preNotas a un array de Numpy
-preNotasNP[preNotasNP[:, 0].argsort()]		# Ordenar el array gracias a numpy
+preNotasNP = np.asarray(preNotas) 						# Pasar el array preNotas a un array de Numpy
+preNotasNP = preNotasNP[preNotasNP[:, 0].argsort()]  	# Ordenar el array con respecto a la columna 0 (tiempo)
 
+# Mirar si hay mas de 6 canales abiertos a la vez
 for nota in preNotasNP:
-	if (nota[1] == 1): anadirNota(nota[0], int(nota[2]))
-	else: quitarNota(nota[0], int(nota[2]))
+	if (nota[1] == 1): canalesUtilizados += 1
+	else: canalesUtilizados -= 1
+
+	#print(canalesUtilizados)
+	
+	if (canalesUtilizados > 6):
+		print("En", nota[0], "se necesitarían", canalesUtilizados, "canales.")
+		preguntar = True
 
 if (preguntar): # Preguntar si quiere continuar
 	if (input("El archivo introducido prodría sonar mal debido a la falta de canales, ¿quieres continuar? (s/n): \n") != "s"): quit()
 else:
 	input("Canción lista, dale a Enter para guardar. \n")
+
+for nota in preNotasNP:
+	if (nota[1] == 1): anadirNota(nota[0], int(nota[2]))
+	else: quitarNota(nota[0], int(nota[2]))
 
 # Guardar array
 with open(salida + ".amds", mode = 'w', newline = '') as output:
