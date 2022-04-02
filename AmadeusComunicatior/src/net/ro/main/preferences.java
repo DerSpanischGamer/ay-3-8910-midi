@@ -10,6 +10,8 @@ public class preferences {
 	
 	private Preferences prefs;
 	
+	private final String vers = "1.2";
+	
 	// ------------- Data in the JSON -------------
 	private String musicPath;
 	private String version;
@@ -21,15 +23,7 @@ public class preferences {
 	public preferences() {	// Initializes the preferences
 		prefs = Preferences.userRoot().node(this.getClass().getName());
 		
-		musicPath = prefs.get("PATH", "null");
-        version = prefs.get("VERSION", "1.2");
-        volumen = (char) prefs.getInt("VOLUMEN", 10);
-        if (volumen > 15 || volumen <= 0)	// Sanity check
-        	volumen = 10;
-        	
-        preguntar = prefs.getBoolean("PREGUNTAR", true);
-        preferedPort = prefs.get("PORT", "null");
-        mode = (char) prefs.getInt("MODO", 0);
+		loadConfig();
 	}
 	
 	public void addVentana(Ventana _v) { v = _v; }
@@ -76,9 +70,32 @@ public class preferences {
 			guardarConfiguracion();		// Safe
 	}
     
+	private void loadConfig() {
+		musicPath = prefs.get("PATH", "null");
+        version = prefs.get("VERSION", vers);
+        volumen = (char) prefs.getInt("VOLUMEN", 10);
+        if (volumen > 15 || volumen <= 0)	// Sanity check
+        	volumen = 10;
+        	
+        preguntar = prefs.getBoolean("PREGUNTAR", true);
+        preferedPort = prefs.get("PORT", "null");
+        mode = (char) prefs.getInt("MODO", 0);
+	}
+	
+	public void resetConfig() {
+		prefs.put("PATH", "null");
+		prefs.put("VERSION", vers);
+		prefs.putInt("VOLUMEN", 10);
+		prefs.putBoolean("PREGUNTAR", true);
+		prefs.put("PORT", "null");
+		prefs.putInt("MODO", 0);
+		
+		loadConfig();
+	}
+	
 	public void guardarConfiguracion() {
 		prefs.put("PATH", musicPath);
-		prefs.putInt("VERSION", (int) volumen);
+		prefs.putInt("VOLUMEN", (int) volumen);
 		prefs.putBoolean("PREGUNTAR", preguntar);
 		prefs.put("PORT", preferedPort);
 		prefs.putInt("MODO", (int) mode);			

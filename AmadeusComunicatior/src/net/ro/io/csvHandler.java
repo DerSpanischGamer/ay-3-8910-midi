@@ -220,7 +220,7 @@ public class csvHandler {
 			
 			// All the notes have been extracted, it's time to start processing
 			
-			notasInt = getArray(preNotas);							// List to array
+			notasInt = getArray(preNotas);									// List to array
 			
 			Arrays.sort(notasInt, (a, b) -> Integer.compare(a[0], b[0]));	// Sort the array by their time stamp
 			
@@ -267,7 +267,6 @@ public class csvHandler {
 	
 	private void arrayValues() {
 		// If we are here is bcs we playing them tunes
-		
 		v.getSerial().setEstado(incoming.CSV);
 		
 		// Enable the buttons that are actually necesary

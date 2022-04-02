@@ -115,6 +115,8 @@ public class serialComunication {
 		playing = true;
 		paused = false;
 		
+		v.setAll(2);
+		
 		if (estado == incoming.CSV)		// First we need to load the notes and times
 			s = new sender(puerto, v.getCSV().getNotas(), v.getCSV().getTiempos());
 		else			// Amadeus
@@ -132,6 +134,8 @@ public class serialComunication {
 		paused = false;
 		
 		s.sendMsgThread("pause");
+		
+		setEstado(estado);
 	}
 	
 	public void stop() {	// Stop playing the song
@@ -145,13 +149,23 @@ public class serialComunication {
 		
 		paused = false;
 		playing = false;
+	
+		setEstado(estado);
 	}
 	
 	public boolean isConnected() { return connected; }
 	
 	public incoming getEstado() { return estado; }
 	
-	public void setEstado(incoming _e) { estado = _e; } 
+	public void setEstado(incoming _e) {
+		estado = _e;
+	
+		if (estado == null)
+			return;
+		
+		v.setAll(0);
+		v.setStatus(estado.ordinal() + 1, 1);
+	} 
 }
 
 class sender extends Thread {

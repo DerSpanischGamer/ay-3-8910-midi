@@ -49,12 +49,12 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	
 	private final windowManager wm;
 	
-	// Menu bar buttons
+	// ----------- Menu bar buttons -----------
 	
 	private final fileButtons fb;
 	private final helpButtons hb;
 	
-	// Main buttons
+	// ----------- Main buttons -----------
 
 	private final JButton openMIDI;
 	private final JButton openCSV;
@@ -72,13 +72,31 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	private final JButton play;
 	private final JButton stop;
 	private final JButton connect;
+
+	private final JLabel statusMid;
+	private final JLabel statusAmds;
+	private final JLabel statusCsv;
+
+	private final JLabel[] statuses;
+	
+	private final ImageIcon ready;
+	private final ImageIcon loaded;
+	private final ImageIcon busy;	// Todo disable all loading buttons when playing
+	
+	private final ImageIcon[] icons;
+	
+	private static final int[][] iconsPositions = {
+			{60, 153, 20, 20},
+			{60, 246, 20, 20},
+			{60, 303, 20, 20}
+	};
 	
 	private static final int[][] mainButtonsDims = {
 			{400, 125, 100, 25},	// .mid to .csv
 			{400, 175, 100, 25},	// .mid to .amds
 			{400, 242, 100, 25},	// .csv to .amds
 			{450, 350, 100, 25},	//	Play / Pause
-			{450, 400, 100, 25},	//	Stop
+			{450, 	400, 100, 25},	//	Stop
 			{450, 450, 100, 25},	//	Connect
 	};
 	
@@ -95,13 +113,13 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	
 	private final JTextArea cnsl;		// Text console
 	
-	// Handlers
+	// ----------- Handlers -----------
 	
 	private final midiHandler midH;
 	private final csvHandler csvH;
 	private final amdsHandler amdsH;
 	
-	// Menubar
+	// ----------- Menubar -----------
 	
 	private final JMenu fileMenu;
 	
@@ -116,7 +134,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	private final JMenuItem helpYT;
 	private final JMenuItem helpAbout;
 	
-	// Preferences
+	// ----------- Preferences -----------
 	
 	private JFrame prefs;
 	
@@ -127,6 +145,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	
 	private final static String[] modos = {"Left-centered", "Center-centered", "Right-centered"};
 	
+	private JButton reset;
 	private JButton apply;
 	private JButton apExt;
 	private JButton exit;
@@ -140,8 +159,9 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 			{0, 50, 500, thickness},	// Title / volume
 			{0, 100, 500, thickness},	// volume / preguntar
 			{0, 190, 500, thickness},	// mode / buttons
-			{125, 155, 300, 25},			// Mode
-			{0, 140, 500, thickness}	// preguntar / mode
+			{125, 155, 300, 25},		// Mode
+			{0, 140, 500, thickness},	// preguntar / mode
+			{25, 200, 75, 25}
 	};
 	
 	private final serialComunication sc;
@@ -294,6 +314,28 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		add(stop);
 		add(connect);
 		
+		// --------------- Añadir indicadores ---------------
+
+		ready = new ImageIcon(this.getClass().getResource("/ready.png"));
+		loaded = new ImageIcon(this.getClass().getResource("/loaded.png"));
+		busy = new ImageIcon(this.getClass().getResource("/busy.png"));
+
+		icons = new ImageIcon[] {ready, loaded, busy};
+		
+		statusMid = new JLabel(ready);
+		statusAmds = new JLabel(ready);
+		statusCsv = new JLabel(ready);
+		
+		statuses = new JLabel[] {statusMid, statusAmds, statusCsv};
+
+		statusMid.setBounds(iconsPositions[0][0], iconsPositions[0][1], iconsPositions[0][2], iconsPositions[0][3]);
+		statusAmds.setBounds(iconsPositions[1][0], iconsPositions[1][1], iconsPositions[1][2], iconsPositions[1][3]);
+		statusCsv.setBounds(iconsPositions[2][0], iconsPositions[2][1], iconsPositions[2][2], iconsPositions[2][3]);
+		
+		add(statusMid);
+		add(statusAmds);
+		add(statusCsv);
+		
 		// ================== AÑADIR TEXTO E IMAGENES ==================
 
 		JLabel title = new JLabel();
@@ -360,6 +402,10 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		setCnsl("Welcome :)");
 	}
 	
+	public void setAll(int newStatus) { for (char i = 0; i < statuses.length; i++) statuses[i].setIcon(icons[newStatus]); }
+	
+	public void setStatus(int source, int newStatus) { statuses[source].setIcon(icons[newStatus]); }
+	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void setUpPrefs() {		// It is only executed once when the main window is started
 		prefs = new JFrame("Preferences");
@@ -416,6 +462,9 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		modo = new JComboBox(modos);
 		modo.setBounds(prefBounds[8][0], prefBounds[8][1], prefBounds[8][2], prefBounds[8][3]);
 		
+		reset = new JButton("Reset");
+		reset.setBounds(prefBounds[10][0], prefBounds[10][1], prefBounds[10][2], prefBounds[10][3]);
+		
 		apply = new JButton("Apply");
 		apply.setBounds(prefBounds[2][0], prefBounds[2][1], prefBounds[2][2], prefBounds[2][3]);
 		
@@ -438,6 +487,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		
 		preferencesButtons pb = new preferencesButtons(this);
 		
+		reset.addActionListener(pb);
 		apply.addActionListener(pb);
 		apExt.addActionListener(pb);
 		exit.addActionListener(pb);
@@ -446,6 +496,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		prefs.add(preguntar);
 		prefs.add(modo);
 		
+		prefs.add(reset);
 		prefs.add(apply);
 		prefs.add(apExt);
 		prefs.add(exit);
@@ -642,44 +693,44 @@ class mainButtons implements ActionListener {
 		String id = ((JButton) e.getSource()).getText();	// Get the text in the button to decide the action
 		
 		switch (id) {	// TODO : AÑADIR FUNCIONES PARA TODOS ESTOS
-		case "Open midi file":
-			v.getMIDI().processNewFile(getFile(midFil, "Select a .mid file", true));
-			break;
-		case "Open csv file":
-			v.getCSV().processNewFile(getFile(csvFil, "Select a .csv file", true));
-			break;
-		case "Open amds file":
-			v.getAMDS().processNewFile(getFile(amdsFil, "Select a .amds file", true));
-			break;
-		case "To .csv":
-			fc.setSelectedFile(new File(v.getMIDI().getDir() + ".csv"));	// Set the directory not to the last search but to the last file
-			v.getMIDI().toCsv(getFile(csvFil, "Select a .csv file", false));
-			break;
-		case "To .amds":
-			// TODO : CHECK IF IT COMES FROM .mid or .csv
-		case "Play":
-			v.getSerial().play();
-			break;
-		case "Pause":
-			v.getSerial().pause();
-			break;
-		case "Stop":
-			v.getSerial().stop();
-			break;
-		case "Connect":
-			v.appCnsl("Attempting to connect...");
-			
-			if (v.getSerial().connectPort())
-				((JButton) e.getSource()).setText("Disconnect");	// If it has successfully connected, then change the button to say Disconnect
-			break;
-		case "Disconnect":
-			v.setCnsl("Disconnecting");
-			
-			if (v.getSerial().disconnectPort())
-				((JButton) e.getSource()).setText("Connect");		// If it has successfully connected then change the button to say Connect
-			break;
-		default:
-			System.out.println("Unhandled button " + id);
+			case "Open midi file":
+				v.getMIDI().processNewFile(getFile(midFil, "Select a .mid file", true));
+				break;
+			case "Open csv file":
+				v.getCSV().processNewFile(getFile(csvFil, "Select a .csv file", true));
+				break;
+			case "Open amds file":
+				v.getAMDS().processNewFile(getFile(amdsFil, "Select a .amds file", true));
+				break;
+			case "To .csv":
+				fc.setSelectedFile(new File(v.getMIDI().getDir() + ".csv"));	// Set the directory not to the last search but to the last file
+				v.getMIDI().toCsv(getFile(csvFil, "Select a .csv file", false));
+				break;
+			case "To .amds":
+				// TODO : CHECK IF IT COMES FROM .mid or .csv
+			case "Play":
+				v.getSerial().play();
+				break;
+			case "Pause":
+				v.getSerial().pause();
+				break;
+			case "Stop":
+				v.getSerial().stop();
+				break;
+			case "Connect":
+				v.appCnsl("Attempting to connect...");
+				
+				if (v.getSerial().connectPort())
+					((JButton) e.getSource()).setText("Disconnect");	// If it has successfully connected, then change the button to say Disconnect
+				break;
+			case "Disconnect":
+				v.setCnsl("Disconnecting");
+				
+				if (v.getSerial().disconnectPort())
+					((JButton) e.getSource()).setText("Connect");		// If it has successfully connected then change the button to say Connect
+				break;
+			default:
+				System.out.println("Unhandled button " + id);
 		}
 	}
 	
@@ -760,6 +811,10 @@ class preferencesButtons implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch(((JButton) e.getSource()).getText()) {
+		case "Reset":
+			v.getPreferences().resetConfig();
+			v.togglePrefs();
+			break;
 		case "Apply and Exit":
 			v.applyChanges();
 			v.togglePrefs();
