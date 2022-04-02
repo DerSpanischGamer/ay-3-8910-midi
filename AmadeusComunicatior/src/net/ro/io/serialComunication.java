@@ -59,8 +59,8 @@ public class serialComunication {
 						v.appCnsl("Connected to port : " + port.getSystemPortName());
 						puerto = port;
 
-					    puerto.setComPortParameters(115200, 8, 1, 0); // default connection settings for Arduino
-					    puerto.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0); // block until bytes can be written
+					    puerto.setComPortParameters(115200, 8, 1, 0); 						// default connection settings for Amadeus Board
+					    puerto.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 0, 0); // Block until bytes can be written
 						return true;
 					}
 				}
@@ -180,8 +180,6 @@ class sender extends Thread {
 		while(!stop) {
 			while(play) {
 				try {
-					char[] i = notas.get(index);
-					//System.out.println((int) i[0] + " " + (int) i[1] + " " + (int) i[2]);
 					Thread.sleep((int) tiempoEntre.get(index));
 					puerto.writeBytes(new byte[] {(byte) notas.get(index)[0], (byte) notas.get(index)[1], (byte) notas.get(index)[2]}, 3);
 					

@@ -1,13 +1,6 @@
 package net.ro.main;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import java.util.prefs.Preferences;
 
 import net.ro.ventana.Ventana;
 
@@ -15,38 +8,30 @@ public class preferences {
 	
 	private Ventana v;
 	
+	private Preferences prefs;
+	
 	// ------------- Data in the JSON -------------
 	private String musicPath;
 	private String version;
-	private char volumen;
-	private boolean preguntar;
-	private String preferedPort;
+	private char volumen = 0;				// Value
+	private boolean preguntar = false;
+	private String preferedPort = "NONE";
 	private char mode;
 	
 	public preferences() {	// Initializes the preferences
-		try
-        {
-        	JSONObject obj = (JSONObject) new JSONParser().parse(new FileReader("src/preferences.json"));	//JSON parser object to parse read file
+		prefs = Preferences.userRoot().node(this.getClass().getName());
+		
+		musicPath = prefs.get("PATH", "null");
+        version = prefs.get("VERSION", "1.2");
+        volumen = (char) prefs.getInt("VOLUMEN", 10);
+        if (volumen > 15 || volumen <= 0)	// Sanity check
+        	volumen = 10;
         	
-        	musicPath = obj.get("musicPath").toString();
-        	version = obj.get("version").toString();
-        	volumen = (char) Integer.parseInt(obj.get("volumen").toString());
-        	if (volumen > 15 || volumen <= 0)	// Sanity check
-        		volumen = 10;
-        	
-        	preguntar = (boolean) obj.get("preguntar");
-        	preferedPort = obj.get("preferedPort").toString();
-        	mode = (char) Integer.parseInt(obj.get("mode").toString());
-        	
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-			e.printStackTrace();
-		}
+        preguntar = prefs.getBoolean("PREGUNTAR", true);
+        preferedPort = prefs.get("PORT", "null");
+        mode = (char) prefs.getInt("MODO", 0);
 	}
-
+	
 	public void addVentana(Ventana _v) { v = _v; }
 	
 	// ----------- MUSIC PATH FUNCTIONS -----------
@@ -91,37 +76,13 @@ public class preferences {
 			guardarConfiguracion();		// Safe
 	}
     
-	@SuppressWarnings("unchecked")
 	public void guardarConfiguracion() {
-		FileWriter fw = null;
-		try {
-			fw = new FileWriter("src/preferences.json");
-
-			JSONObject obj = new JSONObject();
+		prefs.put("PATH", musicPath);
+		prefs.putInt("VERSION", (int) volumen);
+		prefs.putBoolean("PREGUNTAR", preguntar);
+		prefs.put("PORT", preferedPort);
+		prefs.putInt("MODO", (int) mode);			
 			
-			obj.put("musicPath", musicPath);
-			obj.put("version", version);
-			obj.put("volumen", (int) volumen);
-			obj.put("preguntar", preguntar);
-			obj.put("preferedPort", preferedPort);
-			obj.put("mode", (int) mode);
-			
-			fw.write(obj.toString());
-			
-			v.appCnsl("Preferences saved");
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (fw == null) {
-					v.appCnsl("Couldn't save preferences");
-					return;
-				}
-				fw.flush();
-				fw.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		v.appCnsl("Preferences saved");
 	}
 }

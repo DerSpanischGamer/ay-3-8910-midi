@@ -297,7 +297,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		// ================== AÑADIR TEXTO E IMAGENES ==================
 
 		JLabel title = new JLabel();
-		title.setIcon(new ImageIcon("src/logo.png"));
+		title.setIcon(new ImageIcon(this.getClass().getResource("/logo.png")));
 		title.setBounds(0, 0, 597, 125);
 		title.setVerticalAlignment(JLabel.NORTH);
 		title.addMouseListener(new AmadeusClick(this));
