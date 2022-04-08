@@ -43,6 +43,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 @SuppressWarnings("serial")
 public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAGES
 
+	private final languageManager lgn;
 	private final preferences pref;
 	
 	private final JFrame frame;
@@ -142,8 +143,11 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	private JCheckBox preguntar;
 	@SuppressWarnings("rawtypes")
 	private JComboBox modo;
+	@SuppressWarnings("rawtypes")
+	private JComboBox idioma;
 	
-	private final static String[] modos = {"Left-centered", "Center-centered", "Right-centered"};
+	private final static String[] modos   = {"Left-centered", "Center-centered", "Right-centered"};
+	private final static String[] idiomas = {"English", "Español"};
 	
 	private JButton reset;
 	private JButton apply;
@@ -153,20 +157,23 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	private int[][] prefBounds = {
 			{125, 60, 200, 15},			// Volume scrollbar
 			{50, 110, 300, 20},			// Checkbox
-			{150, 200, 75, 25},			// Apply button
-			{250, 200, 125, 25},		// Apply and Exit button
-			{400, 200, 75, 25},			// Exit
+			{150, 275, 75, 25},			// Apply button
+			{250, 275, 125, 25},		// Apply and Exit button
+			{400, 275, 75, 25},			// Exit
 			{0, 50, 500, thickness},	// Title / volume
 			{0, 100, 500, thickness},	// volume / preguntar
-			{0, 190, 500, thickness},	// mode / buttons
+			{0, 190, 500, thickness},	// mode / language
 			{125, 155, 300, 25},		// Mode
 			{0, 140, 500, thickness},	// preguntar / mode
-			{25, 200, 75, 25}
+			{25, 275, 75, 25},			// Reset
+			{125, 210, 300, 25},		// Language
+			{0, 260, 500, thickness}	// Language / botones
 	};
 	
 	private final serialComunication sc;
 	
-	public Ventana(preferences _pref) {
+	public Ventana(preferences _pref, languageManager l) {	// TODO : SET A NAME TO ALL BUTTONS AND LINK THE ACTIONS TO THEM
+		lgn = l;
 		pref = _pref;
 		frame = this;
 		
@@ -217,13 +224,13 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		
 		// Declaracion items
 		
-		helpMenu = new JMenu("Help");			// Declarar nuevo menu
+		helpMenu = new JMenu(lgn.getName("help"));			// Declarar nuevo menu
 		helpMenu.setMnemonic(KeyEvent.VK_H);
 		
-		helpHelp = new JMenuItem("Help", KeyEvent.VK_H);
+		helpHelp = new JMenuItem(lgn.getName("help"), KeyEvent.VK_H);
 		helpTd = new JMenuItem("Tindie", KeyEvent.VK_T);
 		helpYT = new JMenuItem("Youtube", KeyEvent.VK_Y);
-		helpAbout = new JMenuItem("About", KeyEvent.VK_A);
+		helpAbout = new JMenuItem(lgn.getName("abt"), KeyEvent.VK_A);
 		
 		// Añadirlos al menu
 		helpMenu.add(helpHelp);
@@ -252,17 +259,17 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		
 		mb = new mainButtons(this);
 		
-		openMIDI = new JButton("Open midi file");
+		openMIDI = new JButton(lgn.getName("midBut"));
 		openMIDI.setBounds(selectButtonsDims[0][0], selectButtonsDims[0][1], selectButtonsDims[0][2], selectButtonsDims[0][3]);
 		openMIDI.addActionListener(mb);
 		openMIDI.setVisible(true);
-		
-		openCSV = new JButton("Open csv file");
+		openMIDI.setName("test");
+		openCSV = new JButton(lgn.getName("csvBut"));
 		openCSV.setBounds(selectButtonsDims[1][0], selectButtonsDims[1][1], selectButtonsDims[1][2], selectButtonsDims[1][3]);
 		openCSV.addActionListener(mb);
 		openCSV.setVisible(true);
 		
-		openAMDS = new JButton("Open amds file");
+		openAMDS = new JButton(lgn.getName("amdsBut"));
 		openAMDS.setBounds(selectButtonsDims[2][0], selectButtonsDims[2][1], selectButtonsDims[2][2], selectButtonsDims[2][3]);
 		openAMDS.addActionListener(mb);
 		openAMDS.setVisible(true);
@@ -273,17 +280,17 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		
 		// --------------- Añadir botones ---------------
 		
-		midiCsv  = new JButton("To .csv");
+		midiCsv  = new JButton(lgn.getName("toBut1"));
 		midiCsv.setBounds(mainButtonsDims[0][0], mainButtonsDims[0][1], mainButtonsDims[0][2], mainButtonsDims[0][3]);
 		midiCsv.addActionListener(mb);
 		midiCsv.setVisible(true);
 		
-		midiAmds = new JButton("To .amds");
+		midiAmds = new JButton(lgn.getName("toBut2"));
 		midiAmds.setBounds(mainButtonsDims[1][0], mainButtonsDims[1][1], mainButtonsDims[1][2], mainButtonsDims[1][3]);
 		midiAmds.addActionListener(mb);
 		midiAmds.setVisible(true);
 		
-		csvAmds = new JButton("To .amds");
+		csvAmds = new JButton(lgn.getName("toBut2"));
 		csvAmds.setBounds(mainButtonsDims[2][0], mainButtonsDims[2][1], mainButtonsDims[2][2], mainButtonsDims[2][3]);
 		csvAmds.addActionListener(mb);
 		csvAmds.setVisible(true);
@@ -298,7 +305,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		stop.addActionListener(mb);
 		stop.setVisible(true);
 		
-		connect = new JButton("Connect");
+		connect = new JButton(lgn.getName("connect"));
 		connect.setBounds(mainButtonsDims[5][0], mainButtonsDims[5][1], mainButtonsDims[5][2], mainButtonsDims[5][3]);
 		connect.addActionListener(mb);
 		connect.setVisible(true);
@@ -408,27 +415,30 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void setUpPrefs() {		// It is only executed once when the main window is started
-		prefs = new JFrame("Preferences");
+		prefs = new JFrame(lgn.getName("pref"));
 		
 		prefs.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		prefs.setSize(500, 300);
+		prefs.setSize(500, 350);
 		prefs.setLayout(null);
 		prefs.setLocationRelativeTo(frame);
 		
 		prefs.addWindowListener(wm);
 		
-		JLabel prefTitle = new JLabel("Preferences");
+		JLabel prefTitle = new JLabel(lgn.getName("pref"));
 		prefTitle.setBounds(10, 10, 150, 25);
 		prefTitle.setFont(new Font("Verdana", Font.PLAIN, 25));
 		
-		JLabel vdLabel = new JLabel("Volume:");
+		JLabel vdLabel = new JLabel(lgn.getName("vol"));
 		vdLabel.setBounds(50, 55, 100, 25);
 		
 		JLabel vlLabel = new JLabel(String.valueOf((int) pref.getVolume()));
 		vlLabel.setBounds(100, 55, 100, 25);
 
-		JLabel mdLabel = new JLabel("Audio mode");
+		JLabel mdLabel = new JLabel(lgn.getName("mode"));
 		mdLabel.setBounds(50, 155, 100, 25);
+		
+		JLabel idLabel = new JLabel(lgn.getName("lgn"));
+		idLabel.setBounds(50, 210, 100, 25);
 		
 		JLabel sep1 = new JLabel();
 		sep1.setOpaque(true);
@@ -450,28 +460,36 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		sep4.setBackground(Color.LIGHT_GRAY);
 		sep4.setBounds(prefBounds[9][0], prefBounds[9][1], prefBounds[9][2], prefBounds[9][3]);
 		
+		JLabel sep5 = new JLabel();
+		sep5.setOpaque(true);
+		sep5.setBackground(Color.LIGHT_GRAY);
+		sep5.setBounds(prefBounds[12][0], prefBounds[12][1], prefBounds[12][2], prefBounds[12][3]);
+		
 		ScrollBarList sc = new ScrollBarList(this, vlLabel);
 		
 		prefVol = new JScrollBar(Adjustable.HORIZONTAL, pref.getVolume(), 1, 1, 16);
 		prefVol.addAdjustmentListener(sc);
 		prefVol.setBounds(prefBounds[0][0], prefBounds[0][1], prefBounds[0][2], prefBounds[0][3]);
 		
-		preguntar = new JCheckBox("Ask when more than 6 channels are used", null, pref.getPreguntar());
+		preguntar = new JCheckBox(lgn.getName("preg"), null, pref.getPreguntar());
 		preguntar.setBounds(prefBounds[1][0], prefBounds[1][1], prefBounds[1][2], prefBounds[1][3]);
 		
 		modo = new JComboBox(modos);
 		modo.setBounds(prefBounds[8][0], prefBounds[8][1], prefBounds[8][2], prefBounds[8][3]);
 		
+		idioma = new JComboBox(idiomas);
+		idioma.setBounds(prefBounds[11][0], prefBounds[11][1], prefBounds[11][2], prefBounds[11][3]);
+		
 		reset = new JButton("Reset");
 		reset.setBounds(prefBounds[10][0], prefBounds[10][1], prefBounds[10][2], prefBounds[10][3]);
 		
-		apply = new JButton("Apply");
+		apply = new JButton(lgn.getName("app"));
 		apply.setBounds(prefBounds[2][0], prefBounds[2][1], prefBounds[2][2], prefBounds[2][3]);
 		
-		apExt = new JButton("Apply and Exit");
+		apExt = new JButton(lgn.getName("aps"));
 		apExt.setBounds(prefBounds[3][0], prefBounds[3][1], prefBounds[3][2], prefBounds[3][3]);
 		
-		exit = new JButton("Exit");
+		exit = new JButton(lgn.getName("exit"));
 		exit.setBounds(prefBounds[4][0], prefBounds[4][1], prefBounds[4][2], prefBounds[4][3]);
 		
 		prefs.add(prefTitle);
@@ -479,11 +497,13 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		prefs.add(vdLabel);
 		prefs.add(vlLabel);
 		prefs.add(mdLabel);
-
+		prefs.add(idLabel);
+		
 		prefs.add(sep1);
 		prefs.add(sep2);
 		prefs.add(sep3);
 		prefs.add(sep4);
+		prefs.add(sep5);
 		
 		preferencesButtons pb = new preferencesButtons(this);
 		
@@ -495,6 +515,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		prefs.add(prefVol);
 		prefs.add(preguntar);
 		prefs.add(modo);
+		prefs.add(idioma);
 		
 		prefs.add(reset);
 		prefs.add(apply);
@@ -512,6 +533,7 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		prefVol.setValue((int) pref.getVolume());
 		preguntar.setSelected(pref.getPreguntar());
 		modo.setSelectedIndex(pref.getMode());
+		idioma.setSelectedIndex(pref.getLanguage());
 	}
 	
 	public void applyChanges() {
@@ -521,13 +543,12 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 		pref.setVolume((char) prefVol.getValue());
 		pref.setPreguntar(preguntar.isSelected());
 		pref.setMode((char) modo.getSelectedIndex());
+		pref.setLanguage(idioma.getSelectedIndex());
 		
 		pref.guardarConfiguracion();
 	}
 
-	public boolean checkPrefs() {
-		return !(prefVol.getValue() == (int) pref.getVolume()) || !(preguntar.isSelected() == pref.getPreguntar()) || !(modo.getSelectedIndex() == pref.getMode());
-	}
+	public boolean checkPrefs() { return !(prefVol.getValue() == (int) pref.getVolume()) || !(preguntar.isSelected() == pref.getPreguntar()) || !(modo.getSelectedIndex() == pref.getMode() || !(idioma.getSelectedIndex() == pref.getLanguage())); }
 
 	public void showPrefsDialog() {
 		int result = JOptionPane.showOptionDialog(prefs, "Are you sure you want to close preferences?", "Exit Preferences?",  JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Don't save", "Save", "Cancel"}, 2);
@@ -561,6 +582,8 @@ public class Ventana extends JFrame {	// TODO : ADD SUPPORT FOR MULTIPLE LANGUAG
 	public csvHandler  getCSV()  { return csvH;  }
 	public midiHandler getMIDI() { return midH;  }
 	public amdsHandler getAMDS() { return amdsH; }
+	
+	public String getText(String key) { return lgn.getName(key); }
 }
 
 class windowManager implements WindowListener {
@@ -633,6 +656,7 @@ class helpButtons implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		switch (((JMenuItem) e.getSource()).getText()) {
+		case "Ayuda":
 		case "Help":
 			// TODO : HANDLE HELP
 			v.appCnsl("TODO : Handle Help");
@@ -643,11 +667,12 @@ class helpButtons implements ActionListener {
 		case "Youtube":
 			openLink("https://www.youtube.com/user/ROBERTO1OOO");
 			break;
+		case "Acerca":
 		case "About":
 			JOptionPane.showMessageDialog(null, "Amadeus Comunicator \n\n Developped by: ROBERTO1OOO \n\n Version: " + v.getPreferences().getVersion(), "About", 1, new ImageIcon("src/logo.png"));
 			break;
 		default:
-			v.appCnsl("Unhandlded button " + ((JMenuItem) e.getSource()).getText());
+			v.appCnsl(v.getText("unhdButton") + " " + ((JMenuItem) e.getSource()).getText());
 		}
 	}
 	
@@ -690,22 +715,23 @@ class mainButtons implements ActionListener {
 		if (v.getPreferences().getMusicPath() != "null")
 			fc.setCurrentDirectory(new File(v.getPreferences().getMusicPath()));
 		
-		String id = ((JButton) e.getSource()).getText();	// Get the text in the button to decide the action
+		String id = ((JButton) e.getSource()).getName();	// Get the text in the button to decide the action
 		
 		switch (id) {	// TODO : AÑADIR FUNCIONES PARA TODOS ESTOS
 			case "Open midi file":
-				v.getMIDI().processNewFile(getFile(midFil, "Select a .mid file", true));
+				v.getMIDI().processNewFile(getFile(midFil, v.getText("cMid"), true));
 				break;
 			case "Open csv file":
-				v.getCSV().processNewFile(getFile(csvFil, "Select a .csv file", true));
+				v.getCSV().processNewFile(getFile(csvFil, v.getText("cCsv"), true));
 				break;
 			case "Open amds file":
-				v.getAMDS().processNewFile(getFile(amdsFil, "Select a .amds file", true));
+				v.getAMDS().processNewFile(getFile(amdsFil, v.getText("cAmds"), true));
 				break;
 			case "To .csv":
 				fc.setSelectedFile(new File(v.getMIDI().getDir() + ".csv"));	// Set the directory not to the last search but to the last file
-				v.getMIDI().toCsv(getFile(csvFil, "Select a .csv file", false));
+				v.getMIDI().toCsv(getFile(csvFil, v.getText("cCsv"), false));
 				break;
+			case "A .amds":
 			case "To .amds":
 				// TODO : CHECK IF IT COMES FROM .mid or .csv
 			case "Play":
@@ -717,20 +743,22 @@ class mainButtons implements ActionListener {
 			case "Stop":
 				v.getSerial().stop();
 				break;
+			case "Conectar":
 			case "Connect":
-				v.appCnsl("Attempting to connect...");
+				v.appCnsl(v.getText("tryCnt"));
 				
 				if (v.getSerial().connectPort())
-					((JButton) e.getSource()).setText("Disconnect");	// If it has successfully connected, then change the button to say Disconnect
+					((JButton) e.getSource()).setText(v.getText("descont"));	// If it has successfully connected, then change the button to say Disconnect
 				break;
+			case "Desconectar":
 			case "Disconnect":
 				v.setCnsl("Disconnecting");
 				
 				if (v.getSerial().disconnectPort())
-					((JButton) e.getSource()).setText("Connect");		// If it has successfully connected then change the button to say Connect
+					((JButton) e.getSource()).setText(v.getText("connect"));		// If it has successfully connected then change the button to say Connect
 				break;
 			default:
-				System.out.println("Unhandled button " + id);
+				System.out.println(v.getText("unhdBtn") + " " + id);
 		}
 	}
 	
@@ -829,7 +857,7 @@ class preferencesButtons implements ActionListener {
 				v.showPrefsDialog();
 			break;
 		default:
-			v.appCnsl("Unhandled button: " + ((JButton) e.getSource()).getText());
+			v.appCnsl(v.getText("unhdBtn") + " " + ((JButton) e.getSource()).getText());
 			break;
 			
 		}

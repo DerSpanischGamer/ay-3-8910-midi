@@ -1,0 +1,127 @@
+<?xml version="1.0"?> 
+<languages>
+	<espanol>
+		<mainWindow>
+			<midBut>Abrir archivo .mid</midBut>
+			<amdsBut>Abrir archivo .amds</amdsBut>
+			<csvBut>Abrir archivo .csv</csvBut>
+			
+			<toBut1>A .csv</toBut1>
+			<toBut2>A .amds</toBut2>
+			
+			<connect>Conectar</connect>
+			<descont>Desconectar</descont>
+		</mainWindow>
+		<menuBar>
+			<file>Archivo</file>
+			<open>Abrir</open>
+			<pref>Preferencias</pref>
+			<exit>Salir</exit>
+			
+			<help>Ayuda</help>
+			<abt>Acerca de</abt>
+		</menuBar>
+		<preferences>
+			<pref>Preferencias</pref>
+			
+			<vol>Volumen</vol>
+			
+			<preg>Preguntar cuando se usen más de 6 canales</preg>
+			
+			<mode>Modo</mode>
+			<lft>Izquierda</lft>
+			<cnt>Centrado</cnt>
+			<rgt>Derecha</rgt>
+			
+			<lgn>Idioma</lgn>
+			
+			<app>Aplicar</app>
+			<aps>Aplicar y Salir</aps>
+		</preferences>
+		<msgConsol>
+			<unhdBtn>Botón desconocido</unhdBtn>
+			
+			<cMid>Elige un archivo .mid</cMid>
+			<cCsv>Elige un archivo .csv</cCsv>
+			<cAmds>Elige un archivo .amds</cAmds>
+		
+			<tryCnt>Intentando conectarse...</tryCnt>
+			
+			<midLdd>MIDI listo: </midLdd>
+			<midScs>MIDI transformado en .csv con éxito</midScs>
+			<midErr>Error transformando MIDI a .csv</midErr>
+			
+			<csvLdd>.csv listo: </csvLdd>
+			<csvEn1>En </csvEn1>
+			<csvEn2> canales serían necesarios</csvEn2>
+			<csvFld1>Operación fallida, hay aún </csvFld1>
+			<csvFld2> canales abiertos al final</csvFld2>
+			<csvChn> canales serían necesarios. \n El archivo podría no oirse bien. \n ¿Quieres continuar?</csvChn>
+			<csvCnt>¿Continuar?</csvCnt>
+			<csvStp>Operación fallida, no hay suficientes canales para tocar la canción.</csvStp>
+			<csvErr>Error procesando el archivo .csv</csvErr>
+		</msgConsol>
+	</espanol>
+	<english>
+		<mainWindow>
+			<midBut>Open midi file</midBut>
+			<amdsBut>Open amds file</amdsBut>
+			<csvBut>Abrir csv file</csvBut>
+			
+			<toBut1>To .csv</toBut1>
+			<toBut2>To .amds</toBut2>
+			
+			<connect>Connect</connect>
+			<descont>Disconnect</descont>
+		</mainWindow>
+		<menuBar>
+			<file>File</file>
+			<open>Open</open>
+			<pref>Preferences</pref>
+			<exit>Exit</exit>
+			
+			<help>Help</help>
+			<abt>About</abt>
+		</menuBar>
+		<preferences>
+			<pref>Preferences</pref>
+			
+			<vol>Volume</vol>
+			
+			<preg>Ask when more than 6 channels are used</preg>
+			
+			<mode>Audio mode</mode>
+			<lft>Left-centered</lft>
+			<cnt>Center-centered</cnt>
+			<rgt>Right-centered</rgt>
+			
+			<lgn>Language</lgn>
+			
+			<app>Apply</app>
+			<aps>Apply and Exit</aps>
+		</preferences>
+		<msgConsol>
+			<unhdBtn>Unhandled button</unhdBtn>
+				
+			<cMid>Select a .mid file</cMid>
+			<cCsv>Select a .csv file</cCsv>
+			<cAmds>Select a .amds file</cAmds>
+		
+			<tryCnt>Attempting to connect...</tryCnt>
+		
+			<midLdd>MIDI loaded: </midLdd>
+			<midScs>MIDI successfully transformed in .csv</midScs>
+			<midErr>Error transformando MIDI a .csv</midErr>
+			
+			<csvLdd>csv loaded: </csvLdd>
+			<csnEn1>At </csnEn1>
+			<csnEn2> channels would be needed</csnEn2>
+			<csvFld1>Operation failed, there are still </csvFld1>
+			<csvFld2> channels open at the end</csvFld2>
+			<csvChn> channels would be needed. \n The file may not play properly due to this. \n Do you wan to continue?</csvChn>
+			<csvCnt>Continue?</csvCnt>
+			<csvStp>Operation cancelled, not enough channels to play the song.</csvStp>
+			<csvErr>Error processing the .csv file</csvErr>
+		</msgConsol>
+	</english>
+</languages>

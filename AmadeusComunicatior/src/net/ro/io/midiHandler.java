@@ -39,7 +39,7 @@ public class midiHandler {
 		outFile = file.getAbsolutePath().substring(0, file.getAbsolutePath().lastIndexOf(".mid"));	// Get the output file without extension
 		
 		v.setTitle("Amadeus - " + _file.getAbsolutePath() + " - mid");
-		v.setCnsl("MIDI loaded: " + _file.getAbsolutePath());
+		v.setCnsl(v.getText("midLdd") + _file.getAbsolutePath());
 		
 		v.plyButtons(false);
 		v.midButtons(true);
@@ -78,11 +78,11 @@ public class midiHandler {
 			
 			int exitVal = process.waitFor();
 			if (exitVal == 0) {	// Success => go to csvHandler
-				v.appCnsl("mid successfully transformed in csv");
+				v.appCnsl(v.getText("midScs"));
 				System.out.println(outSuc);
 				
 			} else {
-				v.setCnsl("Error transforming mid to csv");
+				v.setCnsl(v.getText("midErr"));
 				v.appCnsl(outErr.toString());
 			}
 			

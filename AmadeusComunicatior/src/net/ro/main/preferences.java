@@ -19,6 +19,7 @@ public class preferences {
 	private boolean preguntar = false;
 	private String preferedPort = "NONE";
 	private char mode;
+	private int language;	// 0 = English | 1 = Español
 	
 	public preferences() {	// Initializes the preferences
 		prefs = Preferences.userRoot().node(this.getClass().getName());
@@ -62,6 +63,12 @@ public class preferences {
 	
 	public void setMode(char c) { mode = c; }
 	
+	// ----------- LANGUAGE FUNCTIONS -----------
+	
+	public int getLanguage() { return language; }
+	
+	public void setLanguage(int s) { language = s; }
+	
 	// ----------- WRITING FUNCTIONS -----------
 	
 	public void setNewPath(String dir) {
@@ -80,6 +87,7 @@ public class preferences {
         preguntar = prefs.getBoolean("PREGUNTAR", true);
         preferedPort = prefs.get("PORT", "null");
         mode = (char) prefs.getInt("MODO", 0);
+        language = prefs.getInt("LANGUAGE", 0);
 	}
 	
 	public void resetConfig() {
@@ -89,6 +97,7 @@ public class preferences {
 		prefs.putBoolean("PREGUNTAR", true);
 		prefs.put("PORT", "null");
 		prefs.putInt("MODO", 0);
+		prefs.put("LANGUAGE", "english");
 		
 		loadConfig();
 	}
@@ -98,7 +107,8 @@ public class preferences {
 		prefs.putInt("VOLUMEN", (int) volumen);
 		prefs.putBoolean("PREGUNTAR", preguntar);
 		prefs.put("PORT", preferedPort);
-		prefs.putInt("MODO", (int) mode);			
+		prefs.putInt("MODO", (int) mode);
+		prefs.putInt("LANGUAGE", language);
 			
 		v.appCnsl("Preferences saved");
 	}

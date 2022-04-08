@@ -190,7 +190,7 @@ public class csvHandler {
 	}
 	
 	private void csvArray() {	// Reads the csv in detail and stores in order to be ready to be send
-		v.setCnsl("csv loaded: " + file);
+		v.setCnsl(v.getText("csvLdd") + file);
 		
 		ultimaVez = 0;			// Reset the last time counter
 		
@@ -234,7 +234,7 @@ public class csvHandler {
 					canalesUtilizados--;
 				
 				if (canalesUtilizados > 6) {
-					v.appCnsl("At " + row[0] + " " + (int) canalesUtilizados + " would be needed.");
+					v.appCnsl(v.getText("csvEn1") + row[0] + " " + (int) canalesUtilizados + v.getText("csvEn2"));
 					maxCanales = true;
 					if (canalesUtilizados > maxCanals)
 						maxCanals = canalesUtilizados;
@@ -242,26 +242,26 @@ public class csvHandler {
 			}
 			
 			if (canalesUtilizados != 0) {
-				v.setCnsl("Operation failed, there are still " + Integer.toString((int) canalesUtilizados) + " channels opened");
+				v.setCnsl(v.getText("csvFld1") + Integer.toString((int) canalesUtilizados) + v.getText("csvFld2"));
 				file = null;
 				return;
 			}
 			
 			// If more than 6 channels are used in parallel, the user is asked if we wishes to continue or not
 			if (v.getPreferences().getPreguntar() && maxCanales && JOptionPane.showConfirmDialog(v, 
-		            (int) maxCanals + " channels would be needed. \n The file may not play properly due to this. \n Do you want to continue?", "Continue?", 
+		            (int) maxCanals + v.getText("csvChn"), v.getText("csvCnt"), 
 		            JOptionPane.YES_NO_OPTION,
 		            JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 		            	arrayValues();
 			else if (!maxCanales)
 				arrayValues();		// If no more than 6 channels, we continue too
 			else {
-				v.setCnsl("Operation cancelled, not enough channels to play the song.");
+				v.setCnsl(v.getText("csvStp"));
 				return;				// If the user doesn't accept the channels then exit
 			}
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			v.appCnsl("Error processing csv file");
+			v.appCnsl(v.getText("csvErr"));
 		}
 	}
 	
