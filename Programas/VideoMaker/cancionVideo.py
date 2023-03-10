@@ -1,6 +1,8 @@
 # USO: python cancionVideo.py "ARCHIVO.amds"
 # Nota: siempre va a guardar los archivos en una carpeta llamada output
 
+# ERROR : EL TIMING NO FUNCIONA
+
 # ------------ LIBRERIAS ------------
 
 import sys
@@ -12,9 +14,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 archivo = sys.argv[1] # Coger el nombre del archivo
 
-FPS = 0			# Guarda el numero de fotogramas por segundo
+FPS = 60		# Guarda el numero de fotogramas por segundo
 tempo = 0		# Numero de ms que pasan cada clk
 pulsos = 24		# Numero de midi clks por ms
+outputF = str(archivo[:-5])	# El nombre del archivo que sale
+
+borrarArchivos = True	# Borrar imagenes una vez se ha hecho el video ?
 
 posicion = 0	# Indica el numero de fotograma
 
@@ -118,7 +123,7 @@ def tiempoYaExiste(tiempo):
 with open(archivo, "r") as csv_file:
 	csv_reader = csv.reader(csv_file, delimiter = ',')
 
-	tempo = float(next(csv_reader)[1]) / 60000 # Guarda el tempo
+	tempo = float(next(csv_reader)[1]) / 60000		# Guarda el tempo
 
 	FPS = 1 / (24 * tempo)							# Guarda los FPS del video (BPM / 60 = BPs)
 	
@@ -146,3 +151,17 @@ totalTiempos = notas[-1][0]
 for i in range(final):
 	printProgressBar(i + 1, final, prefix = 'Progreso:', suffix = 'Completado', length = 50)
 	fotogramaManager(i)
+
+
+print("Generando vídeo")
+os.system('ffmpeg -r ' + str(FPS) + ' -s 1920x1080 -i output/%d_' + str(archivo[:-5]) + '.png -vcodec libx264 -crf 15 -y -pix_fmt yuv420p ' + outputF + '.mp4') # Create video
+
+if (borrarArchivos):
+	print("Borrando imagenes")
+	
+	files = os.listdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output'))
+	
+	# Loop through the files and delete them
+	for file in files:
+		file_path = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'output'), file)
+		os.remove(file_path)
