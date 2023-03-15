@@ -79,9 +79,9 @@ void noteOffHandler(byte channel, byte pitch, byte velocity) {
 void resetChannels() {  // This function will silence all channels when called
   for (char i = 0; i < 6; i++) {
     canales[i] = -1;
-
-    const char chip = can / 3;
-    const char canal = can % 3;
+  
+    const char chip = i / 3;
+    const char canal = i % 3;
 
     amadeus.out(chip, canal + 8, 0);  // Silence channel
   }
@@ -89,7 +89,7 @@ void resetChannels() {  // This function will silence all channels when called
 
 void setup() {
   MIDI.begin(MIDI_CHANNEL_OMNI);  // Initialize the Midi Library.
-  / OMNI sets it to listen to all channels..MIDI.begin(2) would set it
+  // OMNI sets it to listen to all channels..MIDI.begin(2) would set it
       // to respond to channel 2 notes only.
       MIDI.setHandleNoteOn(noteOnHandler);
   MIDI.setHandleNoteOff(noteOffHandler);
