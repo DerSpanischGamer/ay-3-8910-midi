@@ -31,6 +31,10 @@ total = 0 	# Tiempo total
 tracks = [] 		# Cada vez que se lea un comando Start_track, se mete aqui un 0, despues se preguntara al utilizador si quiere que cada canal sea nota (0) o ruido (1)
 notasTracks = [] 	# Notas que hay en el track actual 
 
+# Variables de los envelopes
+
+env = [-1, -1, -1, -1, -1, -1]	# Aquí se guarda la configuración de los envelopes
+
 # Otras variables
 
 archivo = sys.argv[1]	# Guarda el nombre del archivo .csv que se abre
@@ -137,6 +141,7 @@ def anadirNota(tiempo, nota): 	# Anade una nota al array notas (duh)
 	tiemposEntreNotas.append(tiempo - ultimavez)	# Contar cuanto ha pasado desde la ultima nota y ponerlo en la lista de espera
 	tiemposEntreNotas.append(0)
 	tiemposEntreNotas.append(0)
+	tiemposEntreNotas.append(0) # TEMP
 	ultimavez = tiempo	# Hacer que esta sea la ultima nota guardando este "instante" como el ultimo
 	
 	dispoT[posicion] = nota # Indicar que el canal no esta disponible quitando el -1 y poniendo la nota que esta sonando
@@ -144,7 +149,8 @@ def anadirNota(tiempo, nota): 	# Anade una nota al array notas (duh)
 	# Ahora vamos a enviar 3 mensajes, el primero para configurar el registro inferior del canal, el segundo para modificar el registro superior y el ultimo para poner el volumen al maximo. TODO: OPTIMIZAR PARA QUE NO SE TENGA QUE PONER SIEMPRE EL VOLUMEN AL MAXIMO
 	notas.append([chip, canal * 2, combis[nota][1]])
 	notas.append([chip, (canal * 2) + 1, combis[nota][0]])
-	notas.append([chip, canal + 8, volumen])
+	notas.append([chip, canal + 8, 16])
+	notas.append([chip, 13, 0])
 
 def anadirRuido(tiempo, nota):
 	global ultimavez, volumen
@@ -260,6 +266,9 @@ else:
 		print("Para cambiar un track escribe el numero del track y un 0 si quieres que sea tune o 1 si quieres que sea ruido.\nDale a enter sin nada para acabar de editar los canales\nSolo se pueden configurar 2 tracks maximo como ruido")
 		userIn = input("")
 
+#while (True): # Configurar el enveloppe
+	
+
 # Algoritmo para distribuir canales : por defecto el programa espera que todos los canales se dediquen a tune
 
 if (sum(tracks) == 1): # 1 solo canal se usa para ruido
@@ -323,7 +332,27 @@ with serial.Serial(puerto, 115200, timeout=1) as ser:
 		time.sleep(0.25)
 		t = bytearray([1, 7, 56])	# Lo mismo que el anterior
 		ser.write(t)
-
+	
+	time.sleep(0.25) # Tiempo entre mensajes
+	
+	for j in [0, 1]:
+		for i in [10, 11, 12]:
+			time.sleep(0.25)
+			t = bytearray([j, i, 16])
+			ser.write(t)
+	
+	time.sleep(0.25)
+	
+	t = bytearray([0, 11, 61])
+	ser.write(t)
+	t = bytearray([0, 12, 9])
+	ser.write(t)
+	
+	t = bytearray([1, 11, 61])
+	ser.write(t)
+	t = bytearray([1, 12, 9])
+	ser.write(t)
+	
 	time.sleep(0.5) # Medio segundo de preparación antes de la actuación
 	
 	print("Tocando:", archivo)
@@ -332,14 +361,16 @@ with serial.Serial(puerto, 115200, timeout=1) as ser:
 		time.sleep(tiemposEntreNotas[i] / 1000)
 		suma += tiemposEntreNotas[i] / 1000
 		
+		if (notas[i][0] == 3): continue
+		
 		t = bytearray(notas[i])	# Transformar cada array en un array de bytes
 		ser.write(t)			# Y enviar el array de bytes
 		
 		print(" {}".format(getTiempo(suma) + " " + getLoadingBar(i, len(tiemposEntreNotas))) + " " + getTiempo(total), end="\r")
 	
 	time.sleep(1)	# Descansar después de la actuación
-	for c in range(len(dispo)):	# Desactivar todos los canales
-		t = bytearray([c // 3, (c % 3) + 9, 0])	# Preparar el mensaje
+	for c in range(6):	# Desactivar todos los canales
+		t = bytearray([c // 3, (c % 3) + 9, 0])	# Preparar el mensaje : volumen = 0
 		ser.write(t)	# Enviar el mensaje
 		time.sleep(0.25) # Dejar un poco de tiempo entre canal mensaje y mensaje
 
