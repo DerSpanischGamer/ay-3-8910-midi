@@ -21,10 +21,11 @@ combis = []
 def relleno(n):
 	for i in range(n): combis.append([-1, -1])
 
-relleno(12)
-for i in range(150): # 150 es un valor arbitrario, pero representa el valor de la nota más alta en midi (?)
+relleno(12) 				# La nota MIDI con código 12 es 16.35
+for i in range(128 - 12): # 150 es un valor arbitrario, pero representa el valor de la nota más alta en midi (?)
 	combis.append(buscarFreq(base_freq*between_freq**i))
 
+print(len(combis))
 print("Python : ")
 print(combis)
 

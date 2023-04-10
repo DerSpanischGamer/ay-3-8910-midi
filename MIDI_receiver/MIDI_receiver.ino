@@ -89,9 +89,11 @@ void resetChannels() {  // This function will silence all channels when called
 
 void setup() {
   MIDI.begin(MIDI_CHANNEL_OMNI);  // Initialize the Midi Library.
-  // OMNI sets it to listen to all channels..MIDI.begin(2) would set it
-      // to respond to channel 2 notes only.
-      MIDI.setHandleNoteOn(noteOnHandler);
+  
+  // OMNI sets it to listen to all channels
+  // MIDI.begin(2) would set it to respond to channel 2 notes only.
+  
+  MIDI.setHandleNoteOn(noteOnHandler);
   MIDI.setHandleNoteOff(noteOffHandler);
 
   attachInterrupt(digitalPinToInterrupt(10), resetChannels, RISING);  // When mode button is pushed (MODE button is PB2 which for arduino is Pin 10)

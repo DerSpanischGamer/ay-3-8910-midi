@@ -18,8 +18,8 @@ combis = []
 def relleno(n):
 	for i in range(n): combis.append(-1)
 
-relleno(12)
-for i in range(150): # 150 es un valor arbitrario, pero representa el valor de la nota más alta en midi (?) -> para que esta el relleno entonces ?
+relleno(12) 				# La nota MIDI con código 12 es 16.35
+for i in range(128 - 12): 	# En total hay 127 notas MIDI, por lo que 128 va de [0, 127], restamos los 12 de relleno sin empezar en 11 para no modificar la frequencies de base. De todos modos, solo puede tocar entre 30.5 Hz y 125kHz
 	f = base_freq*(between_freq**i)
 	
 	for j in range(len(ranges)):
